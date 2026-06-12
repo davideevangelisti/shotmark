@@ -6,6 +6,7 @@ import { History } from "./history";
 import { normalizeRect, hexToRgba, arrowHead, clamp, type Point } from "./util";
 import { redactRegion, type RedactMode } from "./redact";
 import { type BeautifySettings, DEFAULT_BEAUTIFY, resolveBackground } from "./beautify";
+import { extractText, type OcrProgress } from "./ocr";
 
 export type Tool =
   | "select" | "arrow" | "rect" | "ellipse" | "line" | "pen"
@@ -254,6 +255,12 @@ export class Editor {
 
   objectCount(): number {
     return this.canvas.getObjects().length;
+  }
+
+  /** OCR the original (un-annotated) image. */
+  async ocr(onProgress?: (p: OcrProgress) => void): Promise<string> {
+    if (!this.baseEl) return "";
+    return extractText(this.baseEl, onProgress);
   }
 
   // ---- export ----

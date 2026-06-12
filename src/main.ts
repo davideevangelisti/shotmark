@@ -90,6 +90,38 @@ $("#copy").addEventListener("click", async () => {
   toast(ok ? "Copied to clipboard" : "Clipboard not available — use Download");
 });
 
+// ---- OCR ----
+const ocrPanel = $("#ocr-panel");
+const ocrText = $("#ocr-text") as HTMLTextAreaElement;
+const ocrStatus = $("#ocr-status");
+let ocrRunning = false;
+
+async function runOcr(): Promise<void> {
+  if (!editor.hasImage() || ocrRunning) return;
+  ocrRunning = true;
+  ocrPanel.hidden = false;
+  ocrText.value = "";
+  ocrStatus.textContent = "Starting…";
+  try {
+    const text = await editor.ocr((p) => {
+      ocrStatus.textContent = `${p.status} ${Math.round(p.progress * 100)}%`;
+    });
+    ocrText.value = text || "(no text found)";
+    ocrStatus.textContent = text ? "Done" : "No text detected";
+  } catch {
+    ocrStatus.textContent = "OCR failed — try again";
+  } finally {
+    ocrRunning = false;
+  }
+}
+
+$("#ocr").addEventListener("click", runOcr);
+$("#ocr-close").addEventListener("click", () => { ocrPanel.hidden = true; });
+$("#ocr-copy").addEventListener("click", async () => {
+  await navigator.clipboard?.writeText(ocrText.value).catch(() => {});
+  toast("Text copied");
+});
+
 // ---- input sources ----
 $("#pick").addEventListener("click", () => ($("#file") as HTMLInputElement).click());
 $("#file").addEventListener("change", async (e) => {
@@ -143,6 +175,7 @@ window.addEventListener("keydown", (e) => {
     return;
   }
   if (e.key === "Backspace" || e.key === "Delete") { editor.deleteSelected(); return; }
+  if (e.key.toLowerCase() === "o" && editor.hasImage()) { runOcr(); return; }
   const t = KEYS[e.key.toLowerCase()];
   if (t && editor.hasImage()) selectTool(t);
 });

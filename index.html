@@ -39,6 +39,8 @@
         <button id="delete" title="Delete (⌫)">Delete</button>
       </div>
 
+      <button id="ocr" class="wide" title="Extract text from the image (O)">⌖ Extract text</button>
+
       <details id="beautify-panel">
         <summary>Beautify</summary>
         <label class="chk"><input type="checkbox" id="b-enabled" /> Enable</label>
@@ -82,6 +84,13 @@
         </div>
       </div>
       <div id="canvas-wrap" hidden><canvas id="canvas"></canvas></div>
+
+      <div id="ocr-panel" hidden>
+        <header><span>Extracted text</span><button id="ocr-close" title="Close">×</button></header>
+        <textarea id="ocr-text" spellcheck="false" placeholder="Recognized text appears here…"></textarea>
+        <footer><span id="ocr-status"></span><button id="ocr-copy" class="primary">Copy text</button></footer>
+      </div>
+
       <div id="toast" role="status"></div>
     </main>
   </div>
