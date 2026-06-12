@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shotmark — annotate & beautify screenshots, privately</title>
+  <meta name="description" content="Mark up, redact and beautify screenshots in your browser. Nothing is uploaded — your image never leaves your device." />
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <header id="topbar">
+    <div class="brand">Shotmark</div>
+    <div class="tagline">annotate · redact · beautify — 100% in your browser, nothing uploaded</div>
+  </header>
+
+  <div id="app">
+    <aside id="toolbar" aria-label="tools">
+      <div class="tool-group" data-group="tools">
+        <button class="tool" data-tool="select" title="Select / move (V)">▢</button>
+        <button class="tool" data-tool="arrow" title="Arrow (A)">↗</button>
+        <button class="tool" data-tool="rect" title="Rectangle (R)">▭</button>
+        <button class="tool" data-tool="ellipse" title="Ellipse (E)">◯</button>
+        <button class="tool" data-tool="line" title="Line (L)">／</button>
+        <button class="tool" data-tool="pen" title="Pen (P)">✎</button>
+        <button class="tool" data-tool="highlighter" title="Highlighter (H)">▍</button>
+        <button class="tool" data-tool="text" title="Text (T)">T</button>
+        <button class="tool" data-tool="badge" title="Numbered step (N)">①</button>
+        <button class="tool" data-tool="blur" title="Blur / redact (B)">🌫</button>
+        <button class="tool" data-tool="pixelate" title="Pixelate / redact (X)">▦</button>
+        <button class="tool" data-tool="crop" title="Crop (C)">⌗</button>
+      </div>
+
+      <div class="row"><label>Color</label><input type="color" id="color" value="#ff3b30" /></div>
+      <div class="row"><label>Width</label><input type="range" id="width" min="1" max="30" value="4" /></div>
+
+      <div class="actions">
+        <button id="undo" title="Undo (⌘Z)">Undo</button>
+        <button id="redo" title="Redo (⇧⌘Z)">Redo</button>
+        <button id="delete" title="Delete (⌫)">Delete</button>
+      </div>
+
+      <details id="beautify-panel">
+        <summary>Beautify</summary>
+        <label class="chk"><input type="checkbox" id="b-enabled" /> Enable</label>
+        <div class="row"><label>BG</label>
+          <select id="b-bg">
+            <option value="sunset">Sunset</option>
+            <option value="ocean">Ocean</option>
+            <option value="grape">Grape</option>
+            <option value="mint">Mint</option>
+            <option value="slate">Slate</option>
+            <option value="candy">Candy</option>
+            <option value="#ffffff">White</option>
+            <option value="#0d1117">Dark</option>
+          </select>
+        </div>
+        <div class="row"><label>Pad</label><input type="range" id="b-pad" min="0" max="160" value="64" /></div>
+        <div class="row"><label>Round</label><input type="range" id="b-radius" min="0" max="48" value="12" /></div>
+        <div class="row"><label>Shadow</label><input type="range" id="b-shadow" min="0" max="80" value="30" /></div>
+      </details>
+
+      <div class="export">
+        <div class="row"><label>Scale</label>
+          <select id="scale"><option>1</option><option selected>2</option><option>3</option></select>
+        </div>
+        <button id="copy" class="primary" title="Copy to clipboard">Copy</button>
+        <button id="download" class="primary">Download PNG</button>
+        <button id="download-jpg">Download JPG</button>
+      </div>
+    </aside>
+
+    <main id="stage">
+      <div id="dropzone">
+        <div class="dz-inner">
+          <h2>Drop a screenshot, paste (⌘V), or pick a file</h2>
+          <p>Your image is processed entirely on your device. Nothing is uploaded.</p>
+          <div class="dz-buttons">
+            <button id="pick">Choose image…</button>
+            <button id="capture">Capture screen</button>
+          </div>
+          <input type="file" id="file" accept="image/*" hidden />
+        </div>
+      </div>
+      <div id="canvas-wrap" hidden><canvas id="canvas"></canvas></div>
+      <div id="toast" role="status"></div>
+    </main>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
