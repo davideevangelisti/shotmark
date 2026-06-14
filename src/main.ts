@@ -2,6 +2,7 @@ import { Editor, type Tool } from "./editor";
 import { downloadDataUrl, copyToClipboard } from "./exporter";
 import { resolveScale } from "./exporter";
 import { exportFilename } from "./util";
+import { VERSION, BUILD } from "./version";
 import { jsPDF } from "jspdf";
 
 const loadImg = (src: string): Promise<HTMLImageElement> =>
@@ -26,8 +27,15 @@ async function load(url: string): Promise<void> {
   await editor.loadImageFromUrl(url);
   dropzone.hidden = true;
   canvasWrap.hidden = false;
+  $("#zoombar").hidden = false;
   selectTool("select");
+  fitToStage();
   refresh();
+}
+
+function fitToStage(): void {
+  const stage = $("#stage");
+  editor.fit(stage.clientWidth - 56, stage.clientHeight - 56);
 }
 
 function fileToUrl(file: File): Promise<string> {
@@ -130,6 +138,24 @@ $("#t-underline").addEventListener("click", () => {
 $("#t-left").addEventListener("click", () => editor.setTextStyle({ textAlign: "left" }));
 $("#t-center").addEventListener("click", () => editor.setTextStyle({ textAlign: "center" }));
 $("#t-right").addEventListener("click", () => editor.setTextStyle({ textAlign: "right" }));
+
+// ---- version ----
+$("#version").textContent = `v${VERSION} · ${BUILD}`;
+
+// ---- zoom ----
+editor.onZoom = (z) => { ($("#zoom-level")).textContent = Math.round(z * 100) + "%"; };
+$("#zoom-in").addEventListener("click", () => editor.zoomBy(1.2));
+$("#zoom-out").addEventListener("click", () => editor.zoomBy(1 / 1.2));
+$("#zoom-fit").addEventListener("click", fitToStage);
+$("#zoom-100").addEventListener("click", () => editor.resetZoom());
+// trackpad pinch = wheel with ctrlKey; also Ctrl/Cmd + wheel
+$("#stage").addEventListener("wheel", (e) => {
+  const we = e as WheelEvent;
+  if (!we.ctrlKey && !we.metaKey) return;
+  if (!editor.hasImage()) return;
+  we.preventDefault();
+  editor.zoomBy(we.deltaY < 0 ? 1.1 : 1 / 1.1);
+}, { passive: false });
 
 // ---- resizable toolbar ----
 const toolbarEl = $("#toolbar");

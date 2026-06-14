@@ -35,11 +35,15 @@ export class Editor {
   private baseEl: HTMLImageElement | null = null;
   private bgImg: FabricImage | null = null;
   private offset = 0;
+  private zoom = 1;
+  private logicalW = 0;
+  private logicalH = 0;
   style: Style = { color: "#ff3b30", strokeWidth: 4, fontSize: 28 };
   beautify: BeautifySettings = { ...DEFAULT_BEAUTIFY };
   onChange: () => void = () => {};
   onToolChange: (t: Tool) => void = () => {};
   onSelection: (obj: any | null) => void = () => {};
+  onZoom: (z: number) => void = () => {};
 
   private start: Point | null = null;
   private last: Point | null = null;
@@ -69,6 +73,7 @@ export class Editor {
     this.baseEl = el;
     this.canvas.clear();
     this.offset = 0;
+    this.zoom = 1;
     const bg = await FabricImage.fromURL(url);
     bg.set({ selectable: false, evented: false, hoverCursor: "default" });
     this.bgImg = bg;
@@ -103,7 +108,8 @@ export class Editor {
 
     const W = el.width + newOffset * 2;
     const H = el.height + newOffset * 2;
-    this.canvas.setDimensions({ width: W, height: H });
+    this.logicalW = W;
+    this.logicalH = H;
 
     if (b.enabled) {
       const bg = resolveBackground(b.background);
@@ -132,7 +138,40 @@ export class Editor {
       ? new Rect({ width: el.width, height: el.height, rx: radius, ry: radius, originX: "center", originY: "center" })
       : undefined;
 
-    this.canvas.renderAll(); // immediate, so backdrop changes are visible at once
+    this.applyZoom(); // sizes the canvas (logical × zoom) and renders immediately
+  }
+
+  // ---- zoom ----
+  private applyZoom(): void {
+    if (!this.logicalW || !this.logicalH) return;
+    this.canvas.setZoom(this.zoom);
+    this.canvas.setDimensions({
+      width: Math.round(this.logicalW * this.zoom),
+      height: Math.round(this.logicalH * this.zoom),
+    });
+    this.canvas.renderAll();
+    this.onZoom(this.zoom);
+  }
+
+  setZoomLevel(z: number): void {
+    this.zoom = clamp(z, 0.1, 5);
+    this.applyZoom();
+  }
+  zoomBy(factor: number): void {
+    this.setZoomLevel(this.zoom * factor);
+  }
+  resetZoom(): void {
+    this.setZoomLevel(1);
+  }
+  getZoom(): number {
+    return this.zoom;
+  }
+  /** Fit the whole composition (including backdrop) into the given viewport,
+   *  never upscaling past 100%. */
+  fit(viewportW: number, viewportH: number): void {
+    if (!this.logicalW || !this.logicalH) return;
+    const z = Math.min(viewportW / this.logicalW, viewportH / this.logicalH, 1);
+    this.setZoomLevel(z);
   }
 
   setTool(t: Tool): void {
@@ -420,9 +459,16 @@ export class Editor {
   // ---- export ----
   // The backdrop is real canvas content now, so export is just the canvas.
   async export(format: "png" | "jpg", scale: 1 | 2 | 3): Promise<string> {
+    const z = this.zoom;
+    // Render at 1:1 so the export is independent of the on-screen zoom level.
+    if (z !== 1) {
+      this.canvas.setZoom(1);
+      this.canvas.setDimensions({ width: this.logicalW, height: this.logicalH });
+    }
     this.canvas.discardActiveObject();
-    this.canvas.requestRenderAll();
+    this.canvas.renderAll();
     const png = this.canvas.toDataURL({ format: "png", multiplier: scale } as any);
+    if (z !== 1) this.applyZoom();
     if (format === "png") return png;
     const img = await loadImage(png);
     return this.flatten(img, "image/jpeg");

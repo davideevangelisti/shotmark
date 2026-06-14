@@ -11,6 +11,7 @@
   <header id="topbar">
     <div class="brand">Shotmark</div>
     <div class="tagline">annotate · redact · beautify — 100% in your browser, nothing uploaded</div>
+    <div class="ver" id="version"></div>
   </header>
 
   <div id="app">
@@ -72,10 +73,10 @@
 
       <button id="ocr" class="wide" title="Extract text from the image (O)">⌖ Extract text</button>
 
-      <details id="beautify-panel">
-        <summary>Backdrop</summary>
-        <div class="hint">Frames your screenshot on a colored background with padding, rounded corners and a shadow — for sharing. Preview updates live; applies on export.</div>
-        <label class="chk"><input type="checkbox" id="b-enabled" /> Add a background frame</label>
+      <div id="beautify-panel">
+        <div class="section-label">Backdrop</div>
+        <label class="chk"><input type="checkbox" id="b-enabled" /> <b>Add a background frame</b></label>
+        <div class="hint">Puts your screenshot on a colored background with padding, rounded corners and a shadow — makes it look good for sharing on social/docs. Tip: click <b>Fit</b> (bottom-right) to see the whole frame.</div>
         <div class="row"><label>Background</label>
           <select id="b-bg">
             <option value="sunset">Sunset</option>
@@ -88,10 +89,10 @@
             <option value="#0d1117">Dark</option>
           </select>
         </div>
-        <div class="row"><label>Padding</label><input type="range" id="b-pad" min="0" max="160" value="64" /></div>
+        <div class="row"><label>Padding</label><input type="range" id="b-pad" min="0" max="200" value="80" /></div>
         <div class="row"><label>Corners</label><input type="range" id="b-radius" min="0" max="48" value="12" /></div>
         <div class="row"><label>Shadow</label><input type="range" id="b-shadow" min="0" max="80" value="30" /></div>
-      </details>
+      </div>
 
       <div class="section-label">Export</div>
       <div class="export">
@@ -119,6 +120,14 @@
         </div>
       </div>
       <div id="canvas-wrap" hidden><canvas id="canvas"></canvas></div>
+
+      <div id="zoombar" hidden>
+        <button id="zoom-out" title="Zoom out (⌘-)">−</button>
+        <span id="zoom-level">100%</span>
+        <button id="zoom-in" title="Zoom in (⌘+)">+</button>
+        <button id="zoom-fit" title="Fit to screen">Fit</button>
+        <button id="zoom-100" title="Actual size">1:1</button>
+      </div>
 
       <div id="ocr-panel" hidden>
         <header><span>Extracted text</span><button id="ocr-close" title="Close">×</button></header>

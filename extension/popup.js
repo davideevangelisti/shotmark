@@ -105,3 +105,4 @@ async function captureFullPage() {
 document.getElementById("visible").addEventListener("click", captureVisible);
 document.getElementById("full").addEventListener("click", captureFullPage);
 document.getElementById("blank").addEventListener("click", () => openEditor(null));
+document.getElementById("ver").textContent = "v" + chrome.runtime.getManifest().version;

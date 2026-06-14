@@ -41,11 +41,10 @@ test("toggling Backdrop in the UI grows the canvas and paints the background", a
   const before = await cornerPixel(page);
   expect(before.b).toBeGreaterThan(before.r); // bluish
 
-  await page.locator("#beautify-panel summary").click(); // open the panel
-  await page.locator("#b-enabled").check();              // real click on the checkbox
+  await page.locator("#b-enabled").check(); // real click on the always-visible checkbox
 
   const width = await page.evaluate(() => (window as any).__shotmark.editor.canvas.getWidth());
-  expect(width).toBe(200 + 64 * 2); // padding applied live
+  expect(width).toBe(200 + 80 * 2); // padding (default 80) applied live, zoom 1 for small image
 
   const after = await cornerPixel(page);
   // sunset gradient top-left ≈ #ff7e5f → red dominant, not blue

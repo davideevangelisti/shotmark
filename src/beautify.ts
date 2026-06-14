@@ -21,7 +21,7 @@ export const GRADIENT_PRESETS: Record<string, [string, string]> = {
 
 export const DEFAULT_BEAUTIFY: BeautifySettings = {
   enabled: false,
-  padding: 64,
+  padding: 80,
   radius: 12,
   shadow: 30,
   background: "sunset",
