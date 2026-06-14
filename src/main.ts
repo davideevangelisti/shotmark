@@ -1,7 +1,6 @@
 import { Editor, type Tool } from "./editor";
 import { downloadDataUrl, copyToClipboard } from "./exporter";
 import { resolveScale } from "./exporter";
-import { GRADIENT_PRESETS } from "./beautify";
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T;
 
@@ -23,7 +22,6 @@ async function load(url: string): Promise<void> {
   dropzone.hidden = true;
   canvasWrap.hidden = false;
   selectTool("select");
-  updateBackdropPreview();
   refresh();
 }
 
@@ -38,7 +36,8 @@ function fileToUrl(file: File): Promise<string> {
 // ---- tools ----
 const KEYS: Record<string, Tool> = {
   v: "select", a: "arrow", r: "rect", e: "ellipse", l: "line",
-  p: "pen", h: "highlighter", t: "text", n: "badge", b: "blur", x: "pixelate", c: "crop",
+  p: "pen", h: "highlighter", t: "text", n: "badge", b: "blur", x: "pixelate",
+  s: "spotlight", c: "crop",
 };
 
 function highlightTool(tool: Tool): void {
@@ -80,41 +79,75 @@ $("#undo").addEventListener("click", () => editor.undo());
 $("#redo").addEventListener("click", () => editor.redo());
 $("#delete").addEventListener("click", () => editor.deleteSelected());
 
-// ---- backdrop (live preview) ----
-function cssBackground(bg: string): string {
-  const preset = GRADIENT_PRESETS[bg];
-  return preset ? `linear-gradient(135deg, ${preset[0]}, ${preset[1]})` : bg;
-}
-function updateBackdropPreview(): void {
-  const b = editor.beautify;
-  const frame = editor.frameEl; // Fabric wrapper around the canvas
-  if (b.enabled) {
-    canvasWrap.style.padding = `${b.padding}px`;
-    canvasWrap.style.background = cssBackground(b.background);
-    canvasWrap.style.boxShadow = "none";
-    if (frame) {
-      frame.style.borderRadius = `${b.radius}px`;
-      frame.style.overflow = "hidden";
-      frame.style.boxShadow = b.shadow > 0
-        ? `0 ${Math.round(b.shadow / 3)}px ${b.shadow}px rgba(0,0,0,.35)` : "none";
-    }
-  } else {
-    canvasWrap.style.padding = "0";
-    canvasWrap.style.background = "none";
-    canvasWrap.style.boxShadow = "0 8px 40px rgba(0,0,0,.5)";
-    if (frame) { frame.style.borderRadius = "0"; frame.style.boxShadow = "none"; }
-  }
-}
+// ---- backdrop (applied live to the canvas, identical to export) ----
 const sync = () => {
   editor.beautify.enabled = ($("#b-enabled") as HTMLInputElement).checked;
   editor.beautify.background = ($("#b-bg") as HTMLSelectElement).value;
   editor.beautify.padding = +($("#b-pad") as HTMLInputElement).value;
   editor.beautify.radius = +($("#b-radius") as HTMLInputElement).value;
   editor.beautify.shadow = +($("#b-shadow") as HTMLInputElement).value;
-  updateBackdropPreview();
+  if (editor.hasImage()) editor.applyBackdrop();
 };
 ["#b-enabled", "#b-bg", "#b-pad", "#b-radius", "#b-shadow"].forEach((s) =>
   $(s).addEventListener("input", sync));
+
+// ---- text properties (shown when a text object is selected) ----
+const textPanel = $("#text-panel");
+editor.onSelection = () => {
+  const props = editor.textProps();
+  textPanel.hidden = !props;
+  if (!props) return;
+  ($("#t-font") as HTMLSelectElement).value = props.fontFamily;
+  ($("#t-size") as HTMLInputElement).value = String(Math.round(props.fontSize));
+  $("#t-bold").classList.toggle("on", props.bold);
+  $("#t-italic").classList.toggle("on", props.italic);
+  $("#t-underline").classList.toggle("on", props.underline);
+};
+$("#t-font").addEventListener("change", (e) =>
+  editor.setTextStyle({ fontFamily: (e.target as HTMLSelectElement).value }));
+$("#t-size").addEventListener("input", (e) =>
+  editor.setTextStyle({ fontSize: +(e.target as HTMLInputElement).value }));
+$("#t-bold").addEventListener("click", () => {
+  const on = !editor.textProps()?.bold;
+  editor.setTextStyle({ fontWeight: on ? "bold" : "normal" });
+  $("#t-bold").classList.toggle("on", on);
+});
+$("#t-italic").addEventListener("click", () => {
+  const on = !editor.textProps()?.italic;
+  editor.setTextStyle({ fontStyle: on ? "italic" : "normal" });
+  $("#t-italic").classList.toggle("on", on);
+});
+$("#t-underline").addEventListener("click", () => {
+  const on = !editor.textProps()?.underline;
+  editor.setTextStyle({ underline: on });
+  $("#t-underline").classList.toggle("on", on);
+});
+$("#t-left").addEventListener("click", () => editor.setTextStyle({ textAlign: "left" }));
+$("#t-center").addEventListener("click", () => editor.setTextStyle({ textAlign: "center" }));
+$("#t-right").addEventListener("click", () => editor.setTextStyle({ textAlign: "right" }));
+
+// ---- resizable toolbar ----
+const toolbarEl = $("#toolbar");
+const resizer = $("#resizer");
+const savedWidth = localStorage.getItem("sm.toolbarWidth");
+if (savedWidth) toolbarEl.style.width = savedWidth + "px";
+let resizing = false;
+resizer.addEventListener("pointerdown", (e) => {
+  resizing = true;
+  resizer.classList.add("dragging");
+  resizer.setPointerCapture((e as PointerEvent).pointerId);
+});
+window.addEventListener("pointermove", (e) => {
+  if (!resizing) return;
+  const w = Math.max(180, Math.min(460, (e as PointerEvent).clientX - toolbarEl.getBoundingClientRect().left));
+  toolbarEl.style.width = w + "px";
+});
+window.addEventListener("pointerup", () => {
+  if (!resizing) return;
+  resizing = false;
+  resizer.classList.remove("dragging");
+  localStorage.setItem("sm.toolbarWidth", String(parseInt(toolbarEl.style.width, 10)));
+});
 
 // ---- export ----
 function currentScale(): 1 | 2 | 3 {

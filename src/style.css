@@ -9,7 +9,10 @@ body { margin: 0; background: var(--bg); color: var(--ink);
 .brand { font-weight: 700; font-size: 18px; }
 .tagline { color: var(--muted); font-size: 12px; }
 #app { flex: 1; display: flex; min-height: 0; }
-#toolbar { width: 230px; padding: 14px; border-right: 1px solid var(--line); overflow-y: auto; background: var(--panel); }
+#toolbar { width: 230px; min-width: 180px; max-width: 460px; padding: 14px; border-right: 1px solid var(--line); overflow-y: auto; background: var(--panel); flex-shrink: 0; }
+#resizer { width: 6px; cursor: col-resize; background: transparent; flex-shrink: 0; }
+#resizer:hover, #resizer.dragging { background: var(--accent); }
+#text-panel .actions button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .section-label { text-transform: uppercase; letter-spacing: .6px; font-size: 10px; color: var(--muted); margin: 14px 0 6px; }
 .section-label:first-child { margin-top: 0; }
 .tool-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }

@@ -86,17 +86,49 @@ test("export PNG honors the scale multiplier", async ({ page }) => {
   expect(size.bytes).toBeGreaterThan(1000);
 });
 
-test("beautify export adds padding around the image", async ({ page }) => {
+test("backdrop is applied live and is included in export", async ({ page }) => {
   await loadFixture(page);
-  const w = await page.evaluate(async () => {
+  const res = await page.evaluate(async () => {
     const e = (window as any).__shotmark.editor;
     e.beautify.enabled = true;
     e.beautify.padding = 64;
     e.beautify.background = "ocean";
+    e.applyBackdrop();
+    const liveWidth = e.canvas.getWidth(); // applied to the canvas, not just export
     const data = await e.export("png", 1);
     const img = new Image();
     await new Promise((r) => { img.onload = r; img.src = data; });
-    return img.width;
+    return { liveWidth, exportWidth: img.width };
   });
-  expect(w).toBe(200 + 64 * 2);
+  expect(res.liveWidth).toBe(200 + 64 * 2);
+  expect(res.exportWidth).toBe(200 + 64 * 2);
+});
+
+test("spotlight adds a dimming overlay object", async ({ page }) => {
+  await loadFixture(page);
+  await page.click('.tool[data-tool="spotlight"]');
+  const box = (await page.locator("#canvas").boundingBox())!;
+  await page.mouse.move(box.x + 30, box.y + 30);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 120, box.y + 90, { steps: 5 });
+  await page.mouse.up();
+  const n = await page.evaluate(() => (window as any).__shotmark.editor.objectCount());
+  expect(n).toBe(1);
+});
+
+test("text style can be changed on a selected text object", async ({ page }) => {
+  await loadFixture(page);
+  const res = await page.evaluate(() => {
+    const e = (window as any).__shotmark.editor;
+    e.setTool("text");
+    // simulate a text placement by adding via the same path the tool uses
+    e.canvas.fire("mouse:down", { e: new MouseEvent("mousedown"), scenePoint: { x: 40, y: 40 } });
+    e.setTextStyle({ fontFamily: "Georgia, serif", fontSize: 44, fontWeight: "bold" });
+    const o: any = e.canvas.getActiveObject();
+    return { font: o?.fontFamily, size: o?.fontSize, weight: o?.fontWeight, isText: e.isTextSelected() };
+  });
+  expect(res.isText).toBe(true);
+  expect(res.font).toBe("Georgia, serif");
+  expect(res.size).toBe(44);
+  expect(res.weight).toBe("bold");
 });

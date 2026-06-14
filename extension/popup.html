@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { width: 240px; margin: 0; padding: 14px; background: #161b22; color: #e6edf3;
+      font: 14px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; }
+    h1 { font-size: 15px; margin: 0 0 4px; }
+    p { color: #8b949e; font-size: 11px; margin: 0 0 12px; }
+    button { display: flex; width: 100%; align-items: center; gap: 8px; padding: 10px 12px; margin-bottom: 8px;
+      background: #21262d; border: 1px solid #30363d; color: #e6edf3; border-radius: 8px; cursor: pointer; font-size: 13px; }
+    button:hover { border-color: #2f81f7; }
+    button.primary { background: #238636; border-color: #238636; font-weight: 600; }
+    .ic { font-size: 16px; }
+    #status { font-size: 11px; color: #8b949e; min-height: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Shotmark</h1>
+  <p>Capture a screenshot, then annotate it. Nothing is uploaded.</p>
+  <button id="visible" class="primary"><span class="ic">▣</span> Capture visible area</button>
+  <button id="full"><span class="ic">▤</span> Capture full page</button>
+  <button id="blank"><span class="ic">＋</span> Open editor (paste / drop)</button>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

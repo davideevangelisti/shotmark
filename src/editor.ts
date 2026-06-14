@@ -1,6 +1,6 @@
 import {
   Canvas, Rect, Ellipse, Line, IText, PencilBrush, FabricImage,
-  Polygon, Circle, Group, Textbox,
+  Polygon, Circle, Group, Textbox, Gradient, Shadow,
 } from "fabric";
 import { History } from "./history";
 import { normalizeRect, hexToRgba, arrowHead, clamp, type Point } from "./util";
@@ -10,7 +10,7 @@ import { extractText, type OcrProgress } from "./ocr";
 
 export type Tool =
   | "select" | "arrow" | "rect" | "ellipse" | "line" | "pen"
-  | "highlighter" | "text" | "blur" | "pixelate" | "badge" | "crop";
+  | "highlighter" | "text" | "blur" | "pixelate" | "badge" | "crop" | "spotlight";
 
 export interface Style {
   color: string;
@@ -33,10 +33,13 @@ export class Editor {
   private tool: Tool = "select";
   private badgeCount = 0;
   private baseEl: HTMLImageElement | null = null;
+  private bgImg: FabricImage | null = null;
+  private offset = 0;
   style: Style = { color: "#ff3b30", strokeWidth: 4, fontSize: 28 };
   beautify: BeautifySettings = { ...DEFAULT_BEAUTIFY };
   onChange: () => void = () => {};
   onToolChange: (t: Tool) => void = () => {};
+  onSelection: (obj: any | null) => void = () => {};
 
   private start: Point | null = null;
   private last: Point | null = null;
@@ -48,6 +51,10 @@ export class Editor {
     this.canvas.on("mouse:move", (o) => this.onMove(o));
     this.canvas.on("mouse:up", () => this.onUp());
     this.canvas.on("object:modified", () => this.snapshot());
+    const emitSel = () => this.onSelection(this.canvas.getActiveObject() ?? null);
+    this.canvas.on("selection:created", emitSel);
+    this.canvas.on("selection:updated", emitSel);
+    this.canvas.on("selection:cleared", () => this.onSelection(null));
   }
 
   private pointer(opt: any): Point {
@@ -61,18 +68,71 @@ export class Editor {
     const el = await loadImage(url);
     this.baseEl = el;
     this.canvas.clear();
-    this.canvas.setDimensions({ width: el.width, height: el.height });
+    this.offset = 0;
     const bg = await FabricImage.fromURL(url);
     bg.set({ selectable: false, evented: false, hoverCursor: "default" });
-    (bg as any).excludeFromExport = false;
+    this.bgImg = bg;
     (this.canvas as any).backgroundImage = bg;
-    this.canvas.renderAll();
+    this.applyBackdrop();
     this.history = new History();
     this.snapshot();
   }
 
   hasImage(): boolean {
     return this.baseEl !== null;
+  }
+
+  /** Render the backdrop as real canvas content (size, background fill, the
+   *  screenshot's position, rounded corners and shadow) so the editor is
+   *  exactly what gets exported. Shifts existing annotations to stay aligned
+   *  when the padding changes. */
+  applyBackdrop(): void {
+    const el = this.baseEl;
+    const img = this.bgImg;
+    if (!el || !img) return;
+    const b = this.beautify;
+    const newOffset = b.enabled ? b.padding : 0;
+    const delta = newOffset - this.offset;
+    if (delta !== 0) {
+      for (const o of this.canvas.getObjects()) {
+        o.set({ left: (o.left ?? 0) + delta, top: (o.top ?? 0) + delta });
+        o.setCoords();
+      }
+    }
+    this.offset = newOffset;
+
+    const W = el.width + newOffset * 2;
+    const H = el.height + newOffset * 2;
+    this.canvas.setDimensions({ width: W, height: H });
+
+    if (b.enabled) {
+      const bg = resolveBackground(b.background);
+      if (bg.type === "gradient") {
+        this.canvas.backgroundColor = new Gradient({
+          type: "linear",
+          coords: { x1: 0, y1: 0, x2: W, y2: H },
+          colorStops: [
+            { offset: 0, color: bg.stops[0] },
+            { offset: 1, color: bg.stops[1] },
+          ],
+        }) as any;
+      } else {
+        this.canvas.backgroundColor = bg.color;
+      }
+    } else {
+      this.canvas.backgroundColor = "#ffffff";
+    }
+
+    img.set({ left: newOffset, top: newOffset });
+    img.shadow = b.enabled && b.shadow > 0
+      ? new Shadow({ color: "rgba(0,0,0,0.35)", blur: b.shadow, offsetX: 0, offsetY: Math.round(b.shadow / 3) })
+      : null;
+    const radius = b.enabled ? clamp(b.radius, 0, Math.min(el.width, el.height) / 2) : 0;
+    img.clipPath = radius > 0
+      ? new Rect({ width: el.width, height: el.height, rx: radius, ry: radius, originX: "center", originY: "center" })
+      : undefined;
+
+    this.canvas.requestRenderAll();
   }
 
   setTool(t: Tool): void {
@@ -126,6 +186,37 @@ export class Editor {
     this.snapshot();
   }
 
+  /** Is the current selection a text object? */
+  isTextSelected(): boolean {
+    const o = this.canvas.getActiveObject();
+    return !!o && (o.type === "i-text" || o.type === "textbox");
+  }
+
+  /** Read the selected text object's typographic properties (for the UI). */
+  textProps(): { fontFamily: string; fontSize: number; bold: boolean; italic: boolean; underline: boolean; align: string } | null {
+    const o = this.canvas.getActiveObject() as any;
+    if (!o || (o.type !== "i-text" && o.type !== "textbox")) return null;
+    return {
+      fontFamily: o.fontFamily ?? "",
+      fontSize: o.fontSize ?? this.style.fontSize,
+      bold: o.fontWeight === "bold" || o.fontWeight === 700,
+      italic: o.fontStyle === "italic",
+      underline: !!o.underline,
+      align: o.textAlign ?? "left",
+    };
+  }
+
+  /** Apply typographic properties to the selected text object(s). */
+  setTextStyle(props: Record<string, any>): void {
+    const objs = this.canvas.getActiveObjects().filter(
+      (o) => o.type === "i-text" || o.type === "textbox",
+    );
+    if (!objs.length) return;
+    for (const o of objs) o.set(props);
+    this.canvas.requestRenderAll();
+    this.snapshot();
+  }
+
   private onDown(opt: any): void {
     if (this.tool === "select" || this.tool === "pen" || this.tool === "highlighter") return;
     const p = this.pointer(opt);
@@ -162,9 +253,9 @@ export class Editor {
     }
 
     const common = { stroke: this.style.color, strokeWidth: this.style.strokeWidth, fill: "transparent", selectable: false };
-    if (this.tool === "rect" || this.tool === "crop") {
+    if (this.tool === "rect" || this.tool === "crop" || this.tool === "spotlight") {
       this.draft = new Rect({ left: p.x, top: p.y, width: 1, height: 1, ...common,
-        fill: this.tool === "crop" ? "rgba(0,0,0,0.15)" : "transparent" });
+        fill: this.tool === "rect" ? "transparent" : "rgba(0,0,0,0.15)" });
       this.canvas.add(this.draft);
     } else if (this.tool === "ellipse") {
       this.draft = new Ellipse({ left: p.x, top: p.y, rx: 1, ry: 1, ...common });
@@ -181,7 +272,7 @@ export class Editor {
     const p = this.pointer(opt);
     this.last = p;
     if (!this.draft) return;
-    if (this.tool === "rect" || this.tool === "crop") {
+    if (this.tool === "rect" || this.tool === "crop" || this.tool === "spotlight") {
       const r = normalizeRect(this.start, p);
       this.draft.set(r);
     } else if (this.tool === "ellipse") {
@@ -206,6 +297,18 @@ export class Editor {
       if (width > 5 && height > 5) await this.applyCrop(left, top, width, height);
       this.setTool("select");
       this.snapshot();
+      return;
+    }
+    if (this.tool === "spotlight" && this.draft) {
+      const { left, top, width, height } = this.draft;
+      this.canvas.remove(this.draft);
+      this.draft = null;
+      if (width > 8 && height > 8) {
+        const overlay = this.addSpotlight(left, top, width, height);
+        this.finishInsert(overlay);
+      } else {
+        this.snapshot();
+      }
       return;
     }
     if (this.tool === "arrow" && this.draft) {
@@ -244,12 +347,25 @@ export class Editor {
     if (!this.baseEl) return null;
     const r = normalizeRect(a, b);
     if (r.width < 4 || r.height < 4) return null;
-    const url = redactRegion(this.baseEl, r, mode, 12);
+    // Canvas coords include the backdrop offset; sample from the original image.
+    const src = { left: r.left - this.offset, top: r.top - this.offset, width: r.width, height: r.height };
+    const url = redactRegion(this.baseEl, src, mode, 12);
     const img = await FabricImage.fromURL(url);
     img.set({ left: r.left, top: r.top });
     this.canvas.add(img);
     this.canvas.renderAll();
     return img;
+  }
+
+  /** Dim everything except the chosen rectangle (a competitor staple). */
+  private addSpotlight(left: number, top: number, width: number, height: number): Rect {
+    const overlay = new Rect({
+      left: 0, top: 0, width: this.canvas.getWidth(), height: this.canvas.getHeight(),
+      fill: "rgba(0,0,0,0.55)", selectable: false,
+      clipPath: new Rect({ left, top, width, height, absolutePositioned: true, inverted: true }),
+    });
+    this.canvas.add(overlay);
+    return overlay;
   }
 
   private async applyCrop(left: number, top: number, width: number, height: number): Promise<void> {
@@ -302,15 +418,14 @@ export class Editor {
   }
 
   // ---- export ----
+  // The backdrop is real canvas content now, so export is just the canvas.
   async export(format: "png" | "jpg", scale: 1 | 2 | 3): Promise<string> {
-    const inner = this.canvas.toDataURL({ format: "png", multiplier: scale } as any);
-    if (!this.beautify.enabled) {
-      if (format === "png") return inner;
-      const img = await loadImage(inner);
-      return this.flatten(img, "image/jpeg");
-    }
-    const img = await loadImage(inner);
-    return this.composeBeautified(img, format === "jpg" ? "image/jpeg" : "image/png", scale);
+    this.canvas.discardActiveObject();
+    this.canvas.requestRenderAll();
+    const png = this.canvas.toDataURL({ format: "png", multiplier: scale } as any);
+    if (format === "png") return png;
+    const img = await loadImage(png);
+    return this.flatten(img, "image/jpeg");
   }
 
   private flatten(img: HTMLImageElement, mime: string): string {
@@ -321,56 +436,5 @@ export class Editor {
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.drawImage(img, 0, 0);
     return c.toDataURL(mime, 0.92);
-  }
-
-  private composeBeautified(img: HTMLImageElement, mime: string, scale: number): string {
-    const pad = this.beautify.padding * scale;
-    const radius = this.beautify.radius * scale;
-    const shadow = this.beautify.shadow * scale;
-    const W = img.width + pad * 2;
-    const H = img.height + pad * 2;
-    const c = document.createElement("canvas");
-    c.width = W; c.height = H;
-    const ctx = c.getContext("2d")!;
-
-    const bg = resolveBackground(this.beautify.background);
-    if (bg.type === "gradient") {
-      const g = ctx.createLinearGradient(0, 0, W, H);
-      g.addColorStop(0, bg.stops[0]);
-      g.addColorStop(1, bg.stops[1]);
-      ctx.fillStyle = g;
-    } else {
-      ctx.fillStyle = bg.color;
-    }
-    ctx.fillRect(0, 0, W, H);
-
-    if (shadow > 0) {
-      ctx.save();
-      ctx.shadowColor = "rgba(0,0,0,0.35)";
-      ctx.shadowBlur = shadow;
-      ctx.shadowOffsetY = shadow / 3;
-    }
-    this.roundedPath(ctx, pad, pad, img.width, img.height, clamp(radius, 0, Math.min(img.width, img.height) / 2));
-    ctx.fillStyle = "#fff";
-    ctx.fill();
-    if (shadow > 0) ctx.restore();
-
-    ctx.save();
-    this.roundedPath(ctx, pad, pad, img.width, img.height, clamp(radius, 0, Math.min(img.width, img.height) / 2));
-    ctx.clip();
-    ctx.drawImage(img, pad, pad);
-    ctx.restore();
-
-    return c.toDataURL(mime, 0.92);
-  }
-
-  private roundedPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
   }
 }

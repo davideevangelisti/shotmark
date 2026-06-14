@@ -28,6 +28,7 @@
         <button class="tool" data-tool="badge" title="Numbered step (N)"><span class="ic">①</span><span class="lbl">Step</span></button>
         <button class="tool" data-tool="blur" title="Blur to hide info (B)"><span class="ic">🌫</span><span class="lbl">Blur</span></button>
         <button class="tool" data-tool="pixelate" title="Pixelate to hide info (X)"><span class="ic">▦</span><span class="lbl">Pixelate</span></button>
+        <button class="tool" data-tool="spotlight" title="Spotlight — dim everything else (S)"><span class="ic">◎</span><span class="lbl">Spotlight</span></button>
         <button class="tool" data-tool="crop" title="Crop (C)"><span class="ic">⌗</span><span class="lbl">Crop</span></button>
       </div>
 
@@ -35,6 +36,33 @@
       <div class="row"><label title="Color of the next shape, or the selected one">Color</label><input type="color" id="color" value="#ff3b30" /></div>
       <div class="row"><label title="Thickness / size of the next shape, or the selected one">Size</label><input type="range" id="size" min="1" max="30" value="4" /></div>
       <div class="hint">Tip: with <b>Select</b>, drag to move, use the corner handles to resize, and press ⌫ to delete. Double-click text to edit it.</div>
+
+      <div id="text-panel" hidden>
+        <div class="section-label">Text</div>
+        <div class="row"><label>Font</label>
+          <select id="t-font">
+            <option value="-apple-system, Segoe UI, Roboto, sans-serif">System</option>
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="Georgia, serif">Georgia</option>
+            <option value="'Times New Roman', serif">Times</option>
+            <option value="'Courier New', monospace">Courier</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+            <option value="Impact, sans-serif">Impact</option>
+            <option value="'Comic Sans MS', cursive">Comic Sans</option>
+          </select>
+        </div>
+        <div class="row"><label>Font size</label><input type="number" id="t-size" min="8" max="160" value="28" /></div>
+        <div class="actions">
+          <button id="t-bold" title="Bold" style="font-weight:700">B</button>
+          <button id="t-italic" title="Italic" style="font-style:italic">I</button>
+          <button id="t-underline" title="Underline" style="text-decoration:underline">U</button>
+        </div>
+        <div class="actions">
+          <button id="t-left" title="Align left">⬅</button>
+          <button id="t-center" title="Align center">↔</button>
+          <button id="t-right" title="Align right">➡</button>
+        </div>
+      </div>
 
       <div class="actions">
         <button id="undo" title="Undo (⌘Z)">↺ Undo</button>
@@ -75,6 +103,7 @@
         <button id="download-jpg">⭳ Download JPG</button>
       </div>
     </aside>
+    <div id="resizer" title="Drag to resize panel"></div>
 
     <main id="stage">
       <div id="dropzone">

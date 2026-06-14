@@ -14,11 +14,14 @@ subfolder is the built Shotmark app (regenerate with `npm run build:ext`).
 
 ## Use it
 
-- Go to any normal web page, click the **Shotmark** toolbar icon.
-- It captures the visible tab and opens the editor with the screenshot loaded.
-- Annotate / redact / beautify / export or copy to clipboard — all in-browser.
-- On pages that can't be captured (chrome://, the store, PDFs) the editor opens
-  empty; paste (⌘/Ctrl+V), drag-drop, or pick a file instead.
+- Go to any normal web page, click the **Shotmark** toolbar icon — a popup opens
+  with three choices:
+  - **Capture visible area** — the current viewport.
+  - **Capture full page** — scrolls and stitches the whole page into one image.
+  - **Open editor** — empty, for paste / drag-drop / file.
+- The editor opens with the screenshot loaded; annotate / redact / spotlight /
+  beautify / export or copy to clipboard — all in-browser.
+- Capture only works on normal web pages (not chrome://, the store, or PDFs).
 
 ## After changing code
 
