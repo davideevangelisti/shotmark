@@ -13,10 +13,10 @@ describe("extension manifest", () => {
   it("uses a popup for the capture options", () => {
     expect(manifest.action.default_popup).toBe("popup.html");
   });
-  it("requests only minimal permissions (incl. scripting for full-page)", () => {
-    expect(manifest.permissions).toContain("activeTab");
-    expect(manifest.permissions).toContain("storage");
-    expect(manifest.permissions).toContain("scripting");
+  it("requests the capture/save/copy permissions but no broad host access", () => {
+    for (const p of ["activeTab", "storage", "scripting", "downloads", "clipboardWrite"]) {
+      expect(manifest.permissions).toContain(p);
+    }
     expect(manifest.permissions).not.toContain("<all_urls>");
     expect(manifest.permissions).not.toContain("tabs");
   });

@@ -3,26 +3,46 @@
 <head>
   <meta charset="utf-8" />
   <style>
-    body { width: 240px; margin: 0; padding: 14px; background: #161b22; color: #e6edf3;
-      font: 14px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; }
-    h1 { font-size: 15px; margin: 0 0 4px; }
-    p { color: #8b949e; font-size: 11px; margin: 0 0 12px; }
-    button { display: flex; width: 100%; align-items: center; gap: 8px; padding: 10px 12px; margin-bottom: 8px;
-      background: #21262d; border: 1px solid #30363d; color: #e6edf3; border-radius: 8px; cursor: pointer; font-size: 13px; }
-    button:hover { border-color: #2f81f7; }
-    button.primary { background: #238636; border-color: #238636; font-weight: 600; }
-    .ic { font-size: 16px; }
-    #status { font-size: 11px; color: #8b949e; min-height: 14px; }
+    :root { --ink:#e6edf3; --muted:#8b949e; --line:#21262d; --accent:#2f81f7; }
+    body { width: 250px; margin: 0; padding: 14px; background: #161b22; color: var(--ink);
+      font: 13px/1.4 -apple-system, "Segoe UI", Roboto, sans-serif; }
+    h1 { font-size: 14px; margin: 0 0 12px; display: flex; align-items: baseline; gap: 6px; }
+    h1 .tag { color: var(--muted); font-size: 10px; font-weight: 400; }
+    .group { margin-bottom: 12px; }
+    .glabel { text-transform: uppercase; letter-spacing: .6px; font-size: 10px; color: var(--muted); margin: 0 0 6px 2px; }
+    .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .row button { display: flex; flex-direction: column; align-items: center; gap: 3px;
+      background: #21262d; border: 1px solid #30363d; color: var(--ink); padding: 9px 4px; border-radius: 8px; cursor: pointer; }
+    .row button:hover { border-color: var(--accent); background: #2a3038; }
+    .row button .ic { font-size: 16px; line-height: 1; }
+    .row button .lbl { font-size: 10px; color: var(--muted); }
+    #status { font-size: 11px; color: var(--muted); min-height: 14px; margin-top: 2px; }
+    #ver { color: #6b7280; font-size: 10px; margin-top: 6px; }
   </style>
 </head>
 <body>
-  <h1>Shotmark</h1>
-  <p>Capture a screenshot, then annotate it. Nothing is uploaded.</p>
-  <button id="visible" class="primary"><span class="ic">▣</span> Capture visible area</button>
-  <button id="full"><span class="ic">▤</span> Capture full page</button>
-  <button id="blank"><span class="ic">＋</span> Open editor (paste / drop)</button>
+  <h1>Shotmark <span class="tag">nothing is uploaded</span></h1>
+
+  <div class="group">
+    <div class="glabel">Visible area</div>
+    <div class="row">
+      <button data-scope="visible" data-action="copy" title="Copy to clipboard"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+      <button data-scope="visible" data-action="edit" title="Open in the editor"><span class="ic">✎</span><span class="lbl">Edit</span></button>
+      <button data-scope="visible" data-action="download" title="Download as PNG"><span class="ic">⭳</span><span class="lbl">PNG</span></button>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="glabel">Full page</div>
+    <div class="row">
+      <button data-scope="full" data-action="copy" title="Copy to clipboard"><span class="ic">⧉</span><span class="lbl">Copy</span></button>
+      <button data-scope="full" data-action="edit" title="Open in the editor"><span class="ic">✎</span><span class="lbl">Edit</span></button>
+      <button data-scope="full" data-action="download" title="Download as PNG"><span class="ic">⭳</span><span class="lbl">PNG</span></button>
+    </div>
+  </div>
+
   <div id="status"></div>
-  <div id="ver" style="color:#6b7280;font-size:10px;margin-top:8px"></div>
+  <div id="ver"></div>
   <script src="popup.js"></script>
 </body>
 </html>
