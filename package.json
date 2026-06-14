@@ -1,6 +1,6 @@
 {
   "name": "shotmark",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "In-browser screenshot annotator + beautifier. Privacy-first: nothing leaves your device.",
   "type": "module",

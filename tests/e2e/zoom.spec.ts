@@ -36,6 +36,22 @@ test("Fit returns the whole image to a visible zoom", async ({ page }) => {
   expect(await zoom(page)).toBeLessThan(1);
 });
 
+test("the canvas can be scrolled when it overflows the stage", async ({ page }) => {
+  await page.click("#zoom-100"); // 1:1 on a 2000px image overflows the stage
+  const res = await page.evaluate(() => {
+    const stage = document.querySelector("#stage") as HTMLElement;
+    const overflowed = stage.scrollWidth > stage.clientWidth + 5;
+    stage.scrollLeft = 200;
+    return { overflowed, scrolled: stage.scrollLeft };
+  });
+  expect(res.overflowed).toBe(true);
+  expect(res.scrolled).toBeGreaterThan(0); // the start is reachable, not clipped
+});
+
+test("the Extracted-text panel is hidden until OCR is requested", async ({ page }) => {
+  await expect(page.locator("#ocr-panel")).toBeHidden();
+});
+
 test("export is independent of the current zoom level", async ({ page }) => {
   await page.click("#zoom-in"); // zoom to ~1.2x of fit
   const w = await page.evaluate(async () => {
