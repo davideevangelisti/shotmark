@@ -39,36 +39,45 @@ async function captureVisible() {
   }
 }
 
+// Chrome caps captureVisibleTab at ~2 calls/sec; stay safely under it.
+const CAPTURE_INTERVAL = 650;
+const MAX_SLICES = 60;
+
 async function captureFullPage() {
   setStatus("Measuring page…");
   const tab = await activeTab();
   try {
+    // Disable smooth scrolling and hide scrollbars; read page metrics.
     const [{ result: m }] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      func: () => ({
-        total: document.documentElement.scrollHeight,
-        view: window.innerHeight,
-        width: document.documentElement.clientWidth,
-        startY: window.scrollY,
-      }),
+      func: () => {
+        document.documentElement.style.scrollBehavior = "auto";
+        const total = Math.max(
+          document.body.scrollHeight, document.documentElement.scrollHeight,
+          document.body.offsetHeight, document.documentElement.offsetHeight,
+        );
+        return { total, view: window.innerHeight, width: document.documentElement.clientWidth, startY: window.scrollY };
+      },
     });
 
     const shots = [];
     let target = 0;
-    // capture viewport-sized slices top to bottom, reading the real scroll
-    // position each time so the final (clamped) slice lines up
-    while (true) {
+    let lastCapture = 0;
+    for (let i = 0; i < MAX_SLICES; i++) {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id }, func: (y) => window.scrollTo(0, y), args: [target],
       });
-      await sleep(420); // let it render + respect captureVisibleTab rate limit
+      // throttle so we never exceed the capture rate limit
+      const wait = CAPTURE_INTERVAL - (Date.now() - lastCapture);
+      if (wait > 0) await sleep(wait);
       const [{ result: actualY }] = await chrome.scripting.executeScript({
         target: { tabId: tab.id }, func: () => window.scrollY,
       });
       const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: "png" });
+      lastCapture = Date.now();
       shots.push({ y: actualY, dataUrl });
       setStatus(`Capturing… ${Math.min(100, Math.round(((actualY + m.view) / m.total) * 100))}%`);
-      if (actualY + m.view >= m.total) break;
+      if (actualY + m.view >= m.total - 1) break;
       target = actualY + m.view;
     }
 
@@ -83,12 +92,13 @@ async function captureFullPage() {
     canvas.width = imgs[0].width;
     canvas.height = Math.round(m.total * scale);
     const ctx = canvas.getContext("2d");
-    shots.forEach((s, i) => ctx.drawImage(imgs[i], 0, Math.round(s.y * scale)));
+    // draw bottom-up so later (correct) slices overwrite any overlap seam
+    for (let i = shots.length - 1; i >= 0; i--) {
+      ctx.drawImage(imgs[i], 0, Math.round(shots[i].y * scale));
+    }
     await openEditor(canvas.toDataURL("image/png"));
   } catch (e) {
-    setStatus("Full-page capture failed on this page.");
-    await sleep(1200);
-    await openEditor(null);
+    setStatus("Full-page failed: " + (e && e.message ? e.message : String(e)));
   }
 }
 

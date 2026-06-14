@@ -132,7 +132,7 @@ export class Editor {
       ? new Rect({ width: el.width, height: el.height, rx: radius, ry: radius, originX: "center", originY: "center" })
       : undefined;
 
-    this.canvas.requestRenderAll();
+    this.canvas.renderAll(); // immediate, so backdrop changes are visible at once
   }
 
   setTool(t: Tool): void {

@@ -104,6 +104,15 @@ test("backdrop is applied live and is included in export", async ({ page }) => {
   expect(res.exportWidth).toBe(200 + 64 * 2);
 });
 
+test("Download PDF produces a .pdf file", async ({ page }) => {
+  await loadFixture(page);
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.click("#download-pdf"),
+  ]);
+  expect(download.suggestedFilename()).toMatch(/\.pdf$/);
+});
+
 test("spotlight adds a dimming overlay object", async ({ page }) => {
   await loadFixture(page);
   await page.click('.tool[data-tool="spotlight"]');

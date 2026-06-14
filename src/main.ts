@@ -1,6 +1,11 @@
 import { Editor, type Tool } from "./editor";
 import { downloadDataUrl, copyToClipboard } from "./exporter";
 import { resolveScale } from "./exporter";
+import { exportFilename } from "./util";
+import { jsPDF } from "jspdf";
+
+const loadImg = (src: string): Promise<HTMLImageElement> =>
+  new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.src = src; });
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T;
 
@@ -158,6 +163,17 @@ $("#download").addEventListener("click", async () => {
 });
 $("#download-jpg").addEventListener("click", async () => {
   downloadDataUrl(await editor.export("jpg", currentScale()), "jpg");
+});
+$("#download-pdf").addEventListener("click", async () => {
+  const png = await editor.export("png", currentScale());
+  const img = await loadImg(png);
+  const pdf = new jsPDF({
+    orientation: img.width >= img.height ? "landscape" : "portrait",
+    unit: "px",
+    format: [img.width, img.height],
+  });
+  pdf.addImage(png, "PNG", 0, 0, img.width, img.height);
+  pdf.save(exportFilename("pdf"));
 });
 $("#copy").addEventListener("click", async () => {
   const ok = await copyToClipboard(await editor.export("png", currentScale()));
