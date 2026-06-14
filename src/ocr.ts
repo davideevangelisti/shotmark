@@ -9,7 +9,15 @@ export async function extractText(
   image: HTMLImageElement | HTMLCanvasElement | string,
   onProgress?: (p: OcrProgress) => void,
 ): Promise<string> {
+  // Self-hosted engine assets (public/tesseract/), resolved relative to the
+  // page so it works at /, at /app/ and inside the extension — no CDN, which
+  // the Manifest V3 "no remote code" rule requires.
+  const dir = new URL("tesseract/", document.baseURI).toString();
   const worker = await createWorker("eng", 1, {
+    workerPath: dir + "worker.min.js",
+    corePath: dir,
+    langPath: dir,
+    workerBlobURL: false,
     logger: onProgress ? (m: { status: string; progress: number }) =>
       onProgress({ status: m.status, progress: m.progress }) : undefined,
   });

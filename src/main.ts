@@ -305,7 +305,7 @@ declare const chrome: any;
 (async () => {
   try {
     if (typeof chrome !== "undefined" && chrome.storage?.local) {
-      (document.getElementById("ocr") as HTMLElement | null)?.style.setProperty("display", "none");
+      // OCR now works in the extension too (self-hosted Tesseract assets).
       const { pendingCapture } = await chrome.storage.local.get("pendingCapture");
       if (pendingCapture) {
         await load(pendingCapture);
