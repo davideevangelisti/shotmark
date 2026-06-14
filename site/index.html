@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shotmark — Annotate, redact & beautify screenshots in your browser</title>
+  <meta name="description" content="Blur or pixelate sensitive info, add arrows and text, beautify and extract text from screenshots — all in your browser. Nothing is uploaded. Free, no sign-up, no subscription." />
+  <link rel="canonical" href="https://shotmark.pages.dev/" />
+  <meta property="og:title" content="Shotmark — screenshot annotator that never uploads your image" />
+  <meta property="og:description" content="Annotate, redact (blur/pixelate), beautify and OCR screenshots — 100% in your browser. Free, private, no sign-up." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="./hero.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="./favicon.svg" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="nav">
+    <div class="brand">▦ Shotmark</div>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#privacy">Privacy</a>
+      <a class="btn ghost" href="./app/">Open the app</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <h1>Mark up screenshots.<br />Hide what's private.<br /><span>Never upload a thing.</span></h1>
+        <p class="lede">
+          Blur or pixelate sensitive info, add arrows, boxes and text, frame it
+          beautifully, even pull the text out — all in your browser. Your image
+          never leaves your device.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="./app/">Open Shotmark — it's free</a>
+          <a class="btn ghost" href="#chrome">Add to Chrome</a>
+        </div>
+        <p class="micro">No sign-up · No subscription · No upload</p>
+      </div>
+      <div class="hero-shot">
+        <img src="./hero.png" alt="A screenshot annotated in Shotmark: a blurred API key, a highlighted field and an arrow, on a colored backdrop." loading="eager" />
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <h2>Everything you need to explain — or hide — a screenshot</h2>
+      <div class="grid">
+        <div class="card"><h3>🌫 Redact</h3><p>Blur or pixelate API keys, emails and faces before you share. The original never leaves your machine.</p></div>
+        <div class="card"><h3>↗ Annotate</h3><p>Arrows, boxes, circles, lines, freehand pen, highlighter, text and numbered steps.</p></div>
+        <div class="card"><h3>◎ Spotlight</h3><p>Dim everything except the part that matters, to draw the eye instantly.</p></div>
+        <div class="card"><h3>✨ Beautify</h3><p>Drop your shot on a gradient backdrop with padding, rounded corners and a shadow — ready for docs and socials.</p></div>
+        <div class="card"><h3>⌖ Extract text</h3><p>Built-in OCR pulls the text straight out of any screenshot, in one click.</p></div>
+        <div class="card"><h3>⭳ Export anywhere</h3><p>Copy to clipboard, or download as PNG, JPG or PDF at up to 3× resolution.</p></div>
+      </div>
+    </section>
+
+    <section id="privacy" class="privacy">
+      <h2>Private by design</h2>
+      <p>
+        Most online screenshot tools upload your image to their servers to
+        process it. Shotmark doesn't — every pixel is handled locally in your
+        browser, so a screenshot of your dashboard, your inbox or your bank stays
+        yours. There's no account, no tracking of your images, and nothing to
+        leak.
+      </p>
+    </section>
+
+    <section id="chrome" class="strip">
+      <h2>Capture without leaving the page</h2>
+      <p>The Chrome &amp; Edge extension grabs the visible area or a full-page,
+         scrolling capture — then copy it, edit it, or save a PNG in one click.</p>
+      <p class="soon">Coming soon to the Chrome Web Store. Use the web app today.</p>
+      <a class="btn primary" href="./app/">Open the web app</a>
+    </section>
+  </main>
+
+  <footer>
+    <div>▦ Shotmark — screenshots, marked up and kept private.</div>
+    <div class="muted">Runs entirely in your browser. © <span id="y"></span></div>
+  </footer>
+  <script>document.getElementById("y").textContent = new Date().getFullYear();</script>
+</body>
+</html>

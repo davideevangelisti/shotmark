@@ -14,7 +14,9 @@
     "test": "npm run typecheck && npm run test:unit && npm run build && npm run test:e2e",
     "icons": "node scripts/generate-icons.mjs",
     "bump": "node scripts/bump-version.mjs",
-    "build:ext": "node scripts/bump-version.mjs && node scripts/pack-extension.mjs"
+    "build:ext": "node scripts/bump-version.mjs && node scripts/pack-extension.mjs",
+    "hero": "node scripts/generate-hero.mjs",
+    "build:site": "node scripts/build-site.mjs"
   },
   "dependencies": {
     "fabric": "^6.5.1",
