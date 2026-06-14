@@ -17,7 +17,9 @@
     "bump": "node scripts/bump-version.mjs",
     "build:ext": "node scripts/bump-version.mjs && node scripts/pack-extension.mjs",
     "hero": "node scripts/generate-hero.mjs",
-    "build:site": "node scripts/build-site.mjs"
+    "build:site": "node scripts/build-site.mjs",
+    "pack:zip": "node scripts/pack-zip.mjs",
+    "promo": "node scripts/generate-promo.mjs"
   },
   "dependencies": {
     "fabric": "^6.5.1",
