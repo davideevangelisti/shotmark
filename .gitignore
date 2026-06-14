@@ -4,3 +4,4 @@ test-results/
 playwright-report/
 .playwright/
 shotmark-preview.png
+extension/app/

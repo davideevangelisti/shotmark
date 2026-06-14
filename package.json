@@ -11,7 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
-    "test": "npm run typecheck && npm run test:unit && npm run build && npm run test:e2e"
+    "test": "npm run typecheck && npm run test:unit && npm run build && npm run test:e2e",
+    "icons": "node scripts/generate-icons.mjs",
+    "build:ext": "node scripts/pack-extension.mjs"
   },
   "dependencies": {
     "fabric": "^6.5.1",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
+    "@types/node": "^25.9.3",
     "jsdom": "^25.0.1",
     "typescript": "^5.6.3",
     "vite": "^6.0.3",

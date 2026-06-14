@@ -182,3 +182,21 @@ window.addEventListener("keydown", (e) => {
 
 // expose for E2E tests
 (window as any).__shotmark = { editor, load };
+
+// Extension context: pick up a captured screenshot from the background worker,
+// and hide OCR (its engine assets aren't self-hosted yet — web-only for now).
+declare const chrome: any;
+(async () => {
+  try {
+    if (typeof chrome !== "undefined" && chrome.storage?.local) {
+      (document.getElementById("ocr") as HTMLElement | null)?.style.setProperty("display", "none");
+      const { pendingCapture } = await chrome.storage.local.get("pendingCapture");
+      if (pendingCapture) {
+        await load(pendingCapture);
+        chrome.storage.local.remove("pendingCapture");
+      }
+    }
+  } catch {
+    /* not running as an extension */
+  }
+})();
