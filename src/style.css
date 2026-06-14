@@ -29,7 +29,7 @@ body { margin: 0; background: var(--bg); color: var(--ink);
   background: #0d1117; border: 1px solid var(--line); border-radius: 8px; }
 .hint b { color: var(--ink); }
 .row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
-.row label { width: 48px; color: var(--muted); font-size: 12px; }
+.row label { width: 78px; flex: none; color: var(--muted); font-size: 12px; white-space: nowrap; }
 .row input[type=range] { flex: 1; }
 .row select, .row input[type=color] { flex: 1; background: #0d1117; color: var(--ink); border: 1px solid #30363d; border-radius: 6px; padding: 4px; }
 .actions { display: flex; gap: 6px; margin: 12px 0; }
@@ -59,6 +59,8 @@ summary { cursor: pointer; font-weight: 600; }
 #zoom-level { min-width: 46px; text-align: center; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 button.wide { width: 100%; padding: 9px; border-radius: 8px; border: 1px solid #30363d; background: #21262d; color: var(--ink); cursor: pointer; margin-top: 4px; }
 button.wide:hover { border-color: var(--accent); }
+#beautify-panel { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+#beautify-panel .section-label { margin-top: 0; }
 #ocr-panel { position: fixed; top: 80px; right: 24px; width: 320px; max-height: 70%; display: flex; flex-direction: column; z-index: 7;
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 48px rgba(0,0,0,.6); overflow: hidden; }
 #ocr-panel header { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); font-weight: 600; }
