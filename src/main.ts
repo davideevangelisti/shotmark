@@ -1,6 +1,7 @@
 import { Editor, type Tool } from "./editor";
 import { downloadDataUrl, copyToClipboard } from "./exporter";
 import { resolveScale } from "./exporter";
+import { GRADIENT_PRESETS } from "./beautify";
 
 const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T;
 
@@ -22,6 +23,7 @@ async function load(url: string): Promise<void> {
   dropzone.hidden = true;
   canvasWrap.hidden = false;
   selectTool("select");
+  updateBackdropPreview();
   refresh();
 }
 
@@ -39,11 +41,15 @@ const KEYS: Record<string, Tool> = {
   p: "pen", h: "highlighter", t: "text", n: "badge", b: "blur", x: "pixelate", c: "crop",
 };
 
-function selectTool(tool: Tool): void {
-  editor.setTool(tool);
+function highlightTool(tool: Tool): void {
   document.querySelectorAll(".tool").forEach((b) =>
     b.classList.toggle("active", (b as HTMLElement).dataset.tool === tool));
 }
+function selectTool(tool: Tool): void {
+  editor.setTool(tool); // fires onToolChange -> highlightTool, covering auto-switches too
+}
+// keep the toolbar in sync whether the tool changed by click, shortcut, or auto-return
+editor.onToolChange = highlightTool;
 
 document.querySelectorAll(".tool").forEach((btn) => {
   btn.addEventListener("click", () => selectTool((btn as HTMLElement).dataset.tool as Tool));
@@ -56,21 +62,56 @@ function refresh(): void {
 editor.onChange = refresh;
 
 // ---- style ----
-$("#color").addEventListener("input", (e) => { editor.style.color = (e.target as HTMLInputElement).value; editor.setTool(editor.getTool()); });
-$("#width").addEventListener("input", (e) => { editor.style.strokeWidth = +(e.target as HTMLInputElement).value; editor.setTool(editor.getTool()); });
+$("#color").addEventListener("input", (e) => {
+  editor.style.color = (e.target as HTMLInputElement).value;
+  editor.setTool(editor.getTool()); // refresh brush color
+  editor.applyStyleToSelection();   // recolor whatever is selected
+});
+$("#size").addEventListener("input", (e) => {
+  const v = +(e.target as HTMLInputElement).value;
+  editor.style.strokeWidth = v;
+  editor.style.fontSize = Math.round(v * 7); // one slider controls thickness and text size
+  editor.setTool(editor.getTool());
+  editor.applyStyleToSelection();
+});
 
 // ---- actions ----
 $("#undo").addEventListener("click", () => editor.undo());
 $("#redo").addEventListener("click", () => editor.redo());
 $("#delete").addEventListener("click", () => editor.deleteSelected());
 
-// ---- beautify ----
+// ---- backdrop (live preview) ----
+function cssBackground(bg: string): string {
+  const preset = GRADIENT_PRESETS[bg];
+  return preset ? `linear-gradient(135deg, ${preset[0]}, ${preset[1]})` : bg;
+}
+function updateBackdropPreview(): void {
+  const b = editor.beautify;
+  const frame = editor.frameEl; // Fabric wrapper around the canvas
+  if (b.enabled) {
+    canvasWrap.style.padding = `${b.padding}px`;
+    canvasWrap.style.background = cssBackground(b.background);
+    canvasWrap.style.boxShadow = "none";
+    if (frame) {
+      frame.style.borderRadius = `${b.radius}px`;
+      frame.style.overflow = "hidden";
+      frame.style.boxShadow = b.shadow > 0
+        ? `0 ${Math.round(b.shadow / 3)}px ${b.shadow}px rgba(0,0,0,.35)` : "none";
+    }
+  } else {
+    canvasWrap.style.padding = "0";
+    canvasWrap.style.background = "none";
+    canvasWrap.style.boxShadow = "0 8px 40px rgba(0,0,0,.5)";
+    if (frame) { frame.style.borderRadius = "0"; frame.style.boxShadow = "none"; }
+  }
+}
 const sync = () => {
   editor.beautify.enabled = ($("#b-enabled") as HTMLInputElement).checked;
   editor.beautify.background = ($("#b-bg") as HTMLSelectElement).value;
   editor.beautify.padding = +($("#b-pad") as HTMLInputElement).value;
   editor.beautify.radius = +($("#b-radius") as HTMLInputElement).value;
   editor.beautify.shadow = +($("#b-shadow") as HTMLInputElement).value;
+  updateBackdropPreview();
 };
 ["#b-enabled", "#b-bg", "#b-pad", "#b-radius", "#b-shadow"].forEach((s) =>
   $(s).addEventListener("input", sync));

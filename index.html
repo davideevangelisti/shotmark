@@ -15,36 +15,40 @@
 
   <div id="app">
     <aside id="toolbar" aria-label="tools">
+      <div class="section-label">Tools</div>
       <div class="tool-group" data-group="tools">
-        <button class="tool" data-tool="select" title="Select / move (V)">▢</button>
-        <button class="tool" data-tool="arrow" title="Arrow (A)">↗</button>
-        <button class="tool" data-tool="rect" title="Rectangle (R)">▭</button>
-        <button class="tool" data-tool="ellipse" title="Ellipse (E)">◯</button>
-        <button class="tool" data-tool="line" title="Line (L)">／</button>
-        <button class="tool" data-tool="pen" title="Pen (P)">✎</button>
-        <button class="tool" data-tool="highlighter" title="Highlighter (H)">▍</button>
-        <button class="tool" data-tool="text" title="Text (T)">T</button>
-        <button class="tool" data-tool="badge" title="Numbered step (N)">①</button>
-        <button class="tool" data-tool="blur" title="Blur / redact (B)">🌫</button>
-        <button class="tool" data-tool="pixelate" title="Pixelate / redact (X)">▦</button>
-        <button class="tool" data-tool="crop" title="Crop (C)">⌗</button>
+        <button class="tool" data-tool="select" title="Select, move & resize (V)"><span class="ic">⬉</span><span class="lbl">Select</span></button>
+        <button class="tool" data-tool="arrow" title="Arrow (A)"><span class="ic">↗</span><span class="lbl">Arrow</span></button>
+        <button class="tool" data-tool="rect" title="Box (R)"><span class="ic">▭</span><span class="lbl">Box</span></button>
+        <button class="tool" data-tool="ellipse" title="Circle (E)"><span class="ic">◯</span><span class="lbl">Circle</span></button>
+        <button class="tool" data-tool="line" title="Line (L)"><span class="ic">／</span><span class="lbl">Line</span></button>
+        <button class="tool" data-tool="pen" title="Pen — freehand (P)"><span class="ic">✎</span><span class="lbl">Pen</span></button>
+        <button class="tool" data-tool="highlighter" title="Highlight (H)"><span class="ic">▮</span><span class="lbl">Highlight</span></button>
+        <button class="tool" data-tool="text" title="Text (T)"><span class="ic">T</span><span class="lbl">Text</span></button>
+        <button class="tool" data-tool="badge" title="Numbered step (N)"><span class="ic">①</span><span class="lbl">Step</span></button>
+        <button class="tool" data-tool="blur" title="Blur to hide info (B)"><span class="ic">🌫</span><span class="lbl">Blur</span></button>
+        <button class="tool" data-tool="pixelate" title="Pixelate to hide info (X)"><span class="ic">▦</span><span class="lbl">Pixelate</span></button>
+        <button class="tool" data-tool="crop" title="Crop (C)"><span class="ic">⌗</span><span class="lbl">Crop</span></button>
       </div>
 
-      <div class="row"><label>Color</label><input type="color" id="color" value="#ff3b30" /></div>
-      <div class="row"><label>Width</label><input type="range" id="width" min="1" max="30" value="4" /></div>
+      <div class="section-label">Style</div>
+      <div class="row"><label title="Color of the next shape, or the selected one">Color</label><input type="color" id="color" value="#ff3b30" /></div>
+      <div class="row"><label title="Thickness / size of the next shape, or the selected one">Size</label><input type="range" id="size" min="1" max="30" value="4" /></div>
+      <div class="hint">Tip: with <b>Select</b>, drag to move, use the corner handles to resize, and press ⌫ to delete. Double-click text to edit it.</div>
 
       <div class="actions">
-        <button id="undo" title="Undo (⌘Z)">Undo</button>
-        <button id="redo" title="Redo (⇧⌘Z)">Redo</button>
-        <button id="delete" title="Delete (⌫)">Delete</button>
+        <button id="undo" title="Undo (⌘Z)">↺ Undo</button>
+        <button id="redo" title="Redo (⇧⌘Z)">↻ Redo</button>
+        <button id="delete" title="Delete selected (⌫)">🗑 Delete</button>
       </div>
 
       <button id="ocr" class="wide" title="Extract text from the image (O)">⌖ Extract text</button>
 
       <details id="beautify-panel">
-        <summary>Beautify</summary>
-        <label class="chk"><input type="checkbox" id="b-enabled" /> Enable</label>
-        <div class="row"><label>BG</label>
+        <summary>Backdrop</summary>
+        <div class="hint">Frames your screenshot on a colored background with padding, rounded corners and a shadow — for sharing. Preview updates live; applies on export.</div>
+        <label class="chk"><input type="checkbox" id="b-enabled" /> Add a background frame</label>
+        <div class="row"><label>Background</label>
           <select id="b-bg">
             <option value="sunset">Sunset</option>
             <option value="ocean">Ocean</option>
@@ -56,18 +60,19 @@
             <option value="#0d1117">Dark</option>
           </select>
         </div>
-        <div class="row"><label>Pad</label><input type="range" id="b-pad" min="0" max="160" value="64" /></div>
-        <div class="row"><label>Round</label><input type="range" id="b-radius" min="0" max="48" value="12" /></div>
+        <div class="row"><label>Padding</label><input type="range" id="b-pad" min="0" max="160" value="64" /></div>
+        <div class="row"><label>Corners</label><input type="range" id="b-radius" min="0" max="48" value="12" /></div>
         <div class="row"><label>Shadow</label><input type="range" id="b-shadow" min="0" max="80" value="30" /></div>
       </details>
 
+      <div class="section-label">Export</div>
       <div class="export">
-        <div class="row"><label>Scale</label>
-          <select id="scale"><option>1</option><option selected>2</option><option>3</option></select>
+        <div class="row"><label title="Resolution multiplier — 2× looks crisp on retina displays">Quality</label>
+          <select id="scale"><option value="1">1× standard</option><option value="2" selected>2× sharp</option><option value="3">3× max</option></select>
         </div>
-        <button id="copy" class="primary" title="Copy to clipboard">Copy</button>
-        <button id="download" class="primary">Download PNG</button>
-        <button id="download-jpg">Download JPG</button>
+        <button id="copy" class="primary" title="Copy image to clipboard">⧉ Copy to clipboard</button>
+        <button id="download" class="primary">⭳ Download PNG</button>
+        <button id="download-jpg">⭳ Download JPG</button>
       </div>
     </aside>
 

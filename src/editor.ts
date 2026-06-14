@@ -36,6 +36,7 @@ export class Editor {
   style: Style = { color: "#ff3b30", strokeWidth: 4, fontSize: 28 };
   beautify: BeautifySettings = { ...DEFAULT_BEAUTIFY };
   onChange: () => void = () => {};
+  onToolChange: (t: Tool) => void = () => {};
 
   private start: Point | null = null;
   private last: Point | null = null;
@@ -86,11 +87,43 @@ export class Editor {
     }
     this.canvas.selection = t === "select";
     this.canvas.forEachObject((o) => (o.selectable = t === "select"));
+    this.canvas.defaultCursor = t === "select" ? "default" : "crosshair";
     this.canvas.renderAll();
+    this.onToolChange(t);
   }
 
   getTool(): Tool {
     return this.tool;
+  }
+
+  /** The Fabric wrapper element — used by the UI for the live backdrop preview. */
+  get frameEl(): HTMLElement {
+    return (this.canvas as any).wrapperEl as HTMLElement;
+  }
+
+  /** After placing an object: select it and return to the Select tool so the
+   *  user can immediately drag, resize, or delete it. */
+  private finishInsert(obj: any): void {
+    this.setTool("select");
+    obj.set({ selectable: true });
+    this.canvas.setActiveObject(obj);
+    this.canvas.requestRenderAll();
+    this.snapshot();
+  }
+
+  /** Apply the current color/size to whatever is selected. */
+  applyStyleToSelection(): void {
+    const objs = this.canvas.getActiveObjects();
+    if (!objs.length) return;
+    for (const o of objs) {
+      if (o.type === "i-text" || o.type === "textbox") {
+        o.set({ fill: this.style.color, fontSize: this.style.fontSize });
+      } else if (o.type !== "group" && o.type !== "image") {
+        o.set({ stroke: this.style.color, strokeWidth: this.style.strokeWidth });
+      }
+    }
+    this.canvas.requestRenderAll();
+    this.snapshot();
   }
 
   private onDown(opt: any): void {
@@ -109,6 +142,7 @@ export class Editor {
       t.enterEditing();
       t.selectAll();
       this.start = null;
+      this.setTool("select"); // so it can be moved once typing is done
       this.snapshot();
       return;
     }
@@ -123,7 +157,7 @@ export class Editor {
       const g = new Group([circle, label], { left: p.x, top: p.y, originX: "center", originY: "center" });
       this.canvas.add(g);
       this.start = null;
-      this.snapshot();
+      this.finishInsert(g);
       return;
     }
 
@@ -170,6 +204,7 @@ export class Editor {
       this.canvas.remove(this.draft);
       this.draft = null;
       if (width > 5 && height > 5) await this.applyCrop(left, top, width, height);
+      this.setTool("select");
       this.snapshot();
       return;
     }
@@ -178,40 +213,43 @@ export class Editor {
       const to = { x: this.draft.x2, y: this.draft.y2 };
       this.canvas.remove(this.draft);
       this.draft = null;
-      this.addArrow(from, to);
-      this.snapshot();
+      const g = this.addArrow(from, to);
+      this.finishInsert(g);
       return;
     }
     if ((this.tool === "blur" || this.tool === "pixelate") && endPoint) {
-      await this.addRedaction(startPoint, endPoint, this.tool as RedactMode);
-      this.snapshot();
+      const img = await this.addRedaction(startPoint, endPoint, this.tool as RedactMode);
+      if (img) this.finishInsert(img);
+      else this.snapshot();
       return;
     }
     if (this.draft) {
-      this.draft.set({ selectable: true });
+      const obj = this.draft;
       this.draft = null;
-      this.snapshot();
+      this.finishInsert(obj);
     }
   }
 
-  private addArrow(from: Point, to: Point): void {
+  private addArrow(from: Point, to: Point): Group {
     const headSize = Math.max(12, this.style.strokeWidth * 3);
     const [h1, h2] = arrowHead(from, to, headSize);
     const line = new Line([from.x, from.y, to.x, to.y], { stroke: this.style.color, strokeWidth: this.style.strokeWidth });
     const head = new Polygon([to, h1, h2], { fill: this.style.color });
-    const g = new Group([line, head], { selectable: this.tool === "select" });
+    const g = new Group([line, head]);
     this.canvas.add(g);
+    return g;
   }
 
-  private async addRedaction(a: Point, b: Point, mode: RedactMode): Promise<void> {
-    if (!this.baseEl) return;
+  private async addRedaction(a: Point, b: Point, mode: RedactMode): Promise<FabricImage | null> {
+    if (!this.baseEl) return null;
     const r = normalizeRect(a, b);
-    if (r.width < 4 || r.height < 4) return;
-    const url = redactRegion(this.baseEl, r, mode, mode === "blur" ? 12 : 12);
+    if (r.width < 4 || r.height < 4) return null;
+    const url = redactRegion(this.baseEl, r, mode, 12);
     const img = await FabricImage.fromURL(url);
-    img.set({ left: r.left, top: r.top, selectable: this.tool === "select" });
+    img.set({ left: r.left, top: r.top });
     this.canvas.add(img);
     this.canvas.renderAll();
+    return img;
   }
 
   private async applyCrop(left: number, top: number, width: number, height: number): Promise<void> {
