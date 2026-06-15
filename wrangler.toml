@@ -1,0 +1,7 @@
+# Cloudflare deploy config. Static-assets-only (no Worker script): serves the
+# built site (landing at /, app at /app/) produced by `npm run build:site`.
+name = "shotmark"
+compatibility_date = "2026-06-01"
+
+[assets]
+directory = "./site-dist"
