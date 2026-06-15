@@ -113,16 +113,23 @@ are one command. It builds, bumps the version, zips, uploads, and submits.
 **One-time API setup** (needed for the CLI; do this once):
 1. https://console.cloud.google.com → create/select a project.
 2. APIs & Services → Library → enable **Chrome Web Store API**.
-3. OAuth consent screen → External → add yourself as a test user.
-4. Credentials → Create credentials → **OAuth client ID** → type **Desktop app**.
-   Save the **Client ID** and **Client secret**.
-5. Get a **refresh token** (one time), using the OAuth client from step 4 with
-   scope `https://www.googleapis.com/auth/chromewebstore`. Reliable method:
-   Google OAuth 2.0 Playground (https://developers.google.com/oauthplayground) →
-   gear icon → "Use your own OAuth credentials" → paste client ID/secret →
-   authorize that scope → exchange for tokens → copy the **refresh token**.
-   (The `chrome-webstore-upload-cli` README also documents this flow; follow
-   whichever its current version recommends.)
+3. OAuth consent screen → User type **External** → fill app name + your email.
+   **Publish the app to "In production"** (not just Testing). Reason: in Testing
+   mode refresh tokens expire after **7 days**; in production they're long-lived.
+   You'll later see an "unverified app" warning when authorizing — that's fine
+   for personal use (Advanced → continue).
+4. Credentials → Create credentials → **OAuth client ID** → type **Web
+   application** (NOT Desktop — the token method below needs a registered redirect
+   URI). Under **Authorized redirect URIs** add exactly:
+   `https://developers.google.com/oauthplayground`. Save the **Client ID** and
+   **Client secret**.
+5. Get a **refresh token** (one time) via the OAuth 2.0 Playground:
+   - https://developers.google.com/oauthplayground → gear (top-right) →
+     check **"Use your own OAuth credentials"** → paste Client ID + Secret.
+   - Left panel "Input your own scopes" → enter
+     `https://www.googleapis.com/auth/chromewebstore` → **Authorize APIs** →
+     sign in with the **same Google account** that owns the dev account → allow.
+   - Step 2 → **Exchange authorization code for tokens** → copy the **Refresh token**.
 
 **Store the credentials** in `~/.shotmark-cws.env` (outside the repo, chmod 600):
 ```
