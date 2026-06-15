@@ -116,13 +116,13 @@ are one command. It builds, bumps the version, zips, uploads, and submits.
 3. OAuth consent screen → External → add yourself as a test user.
 4. Credentials → Create credentials → **OAuth client ID** → type **Desktop app**.
    Save the **Client ID** and **Client secret**.
-5. Get a **refresh token** (one time). Easiest:
-   ```bash
-   npx @plasmohq/chrome-webstore-api get-refresh-token \
-     --client-id <ID> --client-secret <SECRET>
-   ```
-   …or follow the OAuth playground flow with scope
-   `https://www.googleapis.com/auth/chromewebstore`. Copy the refresh token.
+5. Get a **refresh token** (one time), using the OAuth client from step 4 with
+   scope `https://www.googleapis.com/auth/chromewebstore`. Reliable method:
+   Google OAuth 2.0 Playground (https://developers.google.com/oauthplayground) →
+   gear icon → "Use your own OAuth credentials" → paste client ID/secret →
+   authorize that scope → exchange for tokens → copy the **refresh token**.
+   (The `chrome-webstore-upload-cli` README also documents this flow; follow
+   whichever its current version recommends.)
 
 **Store the credentials** in `~/.shotmark-cws.env` (outside the repo, chmod 600):
 ```
