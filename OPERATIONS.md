@@ -99,7 +99,8 @@ in the dashboard once**, and the first upload mints the extension's ID.
 3. Fill the listing from **[STORE.md](STORE.md)** (name, summary, description,
    category=Productivity, permission justifications, privacy URL
    `https://shotmark.davide-evangelisti.workers.dev/privacy`, homepage URL).
-4. Upload the screenshot: `npm run promo` → `promo/screenshot-1.png` (1280×800).
+4. Upload the screenshot `promo/store-screenshot-1280x800.png` (regenerate with
+   `npm run promo`) and the store icon `promo/store-icon-128.png`.
 5. Privacy practices: **collects no user data; no remote code** (OCR engine is
    bundled). Submit for review.
 6. **Copy the item's Extension ID** (shown in the dashboard) — needed for the CLI.

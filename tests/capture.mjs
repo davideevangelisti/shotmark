@@ -1,6 +1,9 @@
-// One-off: render the app with a sample annotated screenshot and save a PNG.
+// One-off: render the app with a sample annotated screenshot and save a PNG to
+// the gitignored .preview/ scratch dir (not a committed asset).
 import { chromium } from "@playwright/test";
+import { mkdirSync } from "node:fs";
 
+mkdirSync(".preview", { recursive: true });
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1200, height: 760 } });
 await page.goto("http://localhost:4317/");
@@ -60,6 +63,6 @@ await page.evaluate(() => {
 });
 await page.click('.tool[data-tool="select"]');
 
-await page.screenshot({ path: "shotmark-preview.png" });
+await page.screenshot({ path: ".preview/editor.png" });
 await browser.close();
-console.log("wrote shotmark-preview.png");
+console.log("wrote .preview/editor.png");

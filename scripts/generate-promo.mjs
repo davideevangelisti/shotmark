@@ -54,7 +54,7 @@ await page.evaluate(() => {
   e.fit(s.clientWidth - 56, s.clientHeight - 56);
 });
 await page.waitForTimeout(250);
-await page.screenshot({ path: resolve(root, "promo/screenshot-1.png") });
+await page.screenshot({ path: resolve(root, "promo/store-screenshot-1280x800.png") });
 
 await browser.close();
-console.log("wrote promo/screenshot-1.png (1280x800)");
+console.log("wrote promo/store-screenshot-1280x800.png (1280x800)");

@@ -68,12 +68,15 @@ Annotate, blur/redact, spotlight and beautify screenshots — all in your browse
 
 ---
 
-## Assets
+## Assets (committed under `promo/`)
 
-- **Store icon:** 128×128 — `extension/icons/icon128.png` ✓
-- **Screenshots:** 1280×800 (or 640×400), at least one. Generate with:
-  `npm run promo` → `promo/` (see scripts/generate-promo.mjs).
-- **Small promo tile (optional):** 440×280.
+- **Store icon (128×128):** `promo/store-icon-128.png` — regenerate: `npm run icons`.
+- **Screenshot (1280×800):** `promo/store-screenshot-1280x800.png` — regenerate: `npm run promo`.
+- **Small promo tile (optional, 440×280):** not made yet.
+
+(Site-served images live elsewhere by design: landing hero `site/hero.png`,
+feature gallery `site/gallery/*.png`, extension icons `extension/icons/*.png` —
+those are referenced by the HTML/manifest and must stay in place.)
 
 ## Pre-submit checklist
 
