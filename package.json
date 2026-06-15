@@ -19,7 +19,8 @@
     "hero": "node scripts/generate-hero.mjs",
     "build:site": "node scripts/build-site.mjs",
     "pack:zip": "node scripts/pack-zip.mjs",
-    "promo": "node scripts/generate-promo.mjs"
+    "promo": "node scripts/generate-promo.mjs",
+    "gallery": "node scripts/generate-gallery.mjs"
   },
   "dependencies": {
     "fabric": "^6.5.1",
