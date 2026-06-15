@@ -1,6 +1,6 @@
 {
   "name": "shotmark",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "description": "In-browser screenshot annotator + beautifier. Privacy-first: nothing leaves your device.",
   "type": "module",
@@ -19,6 +19,7 @@
     "hero": "node scripts/generate-hero.mjs",
     "build:site": "node scripts/build-site.mjs",
     "pack:zip": "node scripts/pack-zip.mjs",
+    "publish:cws": "node scripts/publish-cws.mjs",
     "promo": "node scripts/generate-promo.mjs",
     "gallery": "node scripts/generate-gallery.mjs"
   },
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@playwright/test": "^1.49.0",
     "@types/node": "^25.9.3",
+    "chrome-webstore-upload-cli": "^4.0.1",
     "jsdom": "^25.0.1",
     "typescript": "^5.6.3",
     "vite": "^6.0.3",

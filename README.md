@@ -42,10 +42,12 @@ npm run vendor-tesseract  # self-hosted OCR engine -> public/tesseract/
 npm run build       # type-check + Vite build -> dist/
 npm run build:ext   # bump version + package the extension -> extension/
 npm run build:site  # landing page + app -> site-dist/  (deploy this)
+npm run publish:cws # publish an extension update to the Chrome Web Store
 ```
 
-Deployment (Cloudflare Pages / GitHub Pages, custom domain): see
-[`DEPLOY.md`](DEPLOY.md).
+**Deploying (Cloudflare) and publishing (Chrome Web Store / Edge):** see the
+operations runbook **[`OPERATIONS.md`](OPERATIONS.md)**. Listing copy is in
+[`STORE.md`](STORE.md). Live at https://shotmark.davide-evangelisti.workers.dev/
 
 ## Architecture
 

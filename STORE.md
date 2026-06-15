@@ -1,7 +1,11 @@
-# Chrome Web Store submission kit — Shotmark
+# Chrome Web Store listing content — Shotmark
 
-Everything to paste into the listing once the developer account is verified.
-Build + package first:
+The **copy and declarations** to paste into the listing. The step-by-step
+publishing process (first listing via dashboard, then CLI updates with
+`npm run publish:cws`, plus the Google API setup) is in
+**[OPERATIONS.md](OPERATIONS.md) → section 2**.
+
+Build + package:
 
 ```bash
 npm run build:ext   # builds + bumps version
