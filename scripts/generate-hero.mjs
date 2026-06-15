@@ -1,62 +1,58 @@
-// Generate the landing-page hero image: a realistic screenshot annotated and
-// beautified BY Shotmark itself (the actual export), so the hero shows the real
-// output. Requires `npm run preview` running on :4317.
+// Generate the landing hero: the FULL Shotmark UI in editing mode (left tool
+// pane + canvas with a real annotated screenshot). Requires `npm run preview`.
 import { chromium } from "@playwright/test";
-import { writeFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1200, height: 800 } });
+const browser = await chromium.launch({ deviceScaleFactor: 2 });
+const page = await browser.newPage({ viewport: { width: 1320, height: 840 } });
 await page.goto("http://localhost:4317/");
 
 const fixture = await page.evaluate(() => {
   const c = document.createElement("canvas");
-  c.width = 760; c.height = 480;
+  c.width = 820; c.height = 520;
   const x = c.getContext("2d");
-  x.fillStyle = "#ffffff"; x.fillRect(0, 0, 760, 480);
-  x.fillStyle = "#f3f4f6"; x.fillRect(0, 0, 760, 54);
-  ["#e5484d", "#f5a623", "#2ecc71"].forEach((c2, i) => { x.fillStyle = c2; x.beginPath(); x.arc(22 + i * 22, 27, 6, 0, 7); x.fill(); });
-  x.fillStyle = "#111827"; x.font = "bold 24px sans-serif"; x.fillText("Account settings", 30, 104);
-  x.fillStyle = "#6b7280"; x.font = "16px sans-serif";
-  x.fillText("Email", 30, 158); x.fillText("API key", 30, 212); x.fillText("Plan", 30, 266);
+  x.fillStyle = "#ffffff"; x.fillRect(0, 0, 820, 520);
+  x.fillStyle = "#f3f4f6"; x.fillRect(0, 0, 820, 56);
+  ["#e5484d", "#f5a623", "#2ecc71"].forEach((c2, i) => { x.fillStyle = c2; x.beginPath(); x.arc(24 + i * 22, 28, 6, 0, 7); x.fill(); });
+  x.fillStyle = "#111827"; x.font = "bold 26px sans-serif"; x.fillText("Account settings", 32, 112);
+  x.fillStyle = "#6b7280"; x.font = "17px sans-serif";
+  x.fillText("Email", 32, 172); x.fillText("API key", 32, 230); x.fillText("Plan", 32, 288);
   x.fillStyle = "#111827";
-  x.fillText("jane@example.com", 170, 158);
-  x.fillText("sk-live-9f2a7c4e1b88d3a0", 170, 212);
-  x.fillText("Pro (annual)", 170, 266);
-  x.fillStyle = "#2f81f7"; x.fillRect(30, 320, 190, 46);
-  x.fillStyle = "#fff"; x.fillText("Save changes", 74, 349);
+  x.fillText("jane@example.com", 180, 172);
+  x.fillText("sk-live-9f2a7c4e1b88d3a0", 180, 230);
+  x.fillText("Pro (annual)", 180, 288);
+  x.fillStyle = "#2f81f7"; x.fillRect(32, 344, 200, 48);
+  x.fillStyle = "#fff"; x.fillText("Save changes", 78, 374);
   return c.toDataURL("image/png");
 });
-
 await page.evaluate((u) => window.__shotmark.load(u), fixture);
 await page.waitForSelector("#canvas-wrap:not([hidden])");
 
 const box = await page.locator("#canvas").boundingBox();
 const at = (px, py) => ({ x: box.x + px, y: box.y + py });
+const drag = async (tool, a, b) => {
+  await page.click(`.tool[data-tool="${tool}"]`);
+  const p1 = at(a[0], a[1]), p2 = at(b[0], b[1]);
+  await page.mouse.move(p1.x, p1.y); await page.mouse.down();
+  await page.mouse.move(p2.x, p2.y, { steps: 4 }); await page.mouse.up();
+};
+await drag("blur", [172, 214], [400, 246]); await page.waitForTimeout(300);
+await drag("rect", [170, 154], [392, 188]);
+await drag("arrow", [430, 360], [250, 372]);
 
-// blur the API key
-await page.click('.tool[data-tool="blur"]');
-let a = at(168, 198), b = at(360, 222);
-await page.mouse.move(a.x, a.y); await page.mouse.down(); await page.mouse.move(b.x, b.y, { steps: 4 }); await page.mouse.up();
-await page.waitForTimeout(150);
-// box the email
-await page.click('.tool[data-tool="rect"]');
-a = at(160, 140); b = at(360, 170);
-await page.mouse.move(a.x, a.y); await page.mouse.down(); await page.mouse.move(b.x, b.y, { steps: 4 }); await page.mouse.up();
-// arrow to the button
-await page.click('.tool[data-tool="arrow"]');
-a = at(380, 265); b = at(235, 343);
-await page.mouse.move(a.x, a.y); await page.mouse.down(); await page.mouse.move(b.x, b.y, { steps: 4 }); await page.mouse.up();
-
-// beautify + export the real output
-const dataUrl = await page.evaluate(async () => {
+// a touch of colour, deselect, fit, and shoot the whole window
+await page.selectOption("#b-bg", "ocean");
+await page.locator("#b-enabled").check();
+await page.evaluate(() => {
   const e = window.__shotmark.editor;
-  e.beautify.enabled = true; e.beautify.padding = 70; e.beautify.background = "grape"; e.beautify.shadow = 40;
-  e.applyBackdrop();
-  return e.export("png", 2);
+  e.canvas.discardActiveObject(); e.canvas.renderAll();
+  const s = document.querySelector("#stage");
+  e.fit(s.clientWidth - 60, s.clientHeight - 60);
 });
-writeFileSync(resolve(root, "site/hero.png"), Buffer.from(dataUrl.split(",")[1], "base64"));
+await page.waitForTimeout(300);
+await page.screenshot({ path: resolve(root, "site/hero.png") });
+
 await browser.close();
-console.log("wrote site/hero.png");
+console.log("wrote site/hero.png (full UI)");
