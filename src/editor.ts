@@ -388,7 +388,9 @@ export class Editor {
     if (r.width < 4 || r.height < 4) return null;
     // Canvas coords include the backdrop offset; sample from the original image.
     const src = { left: r.left - this.offset, top: r.top - this.offset, width: r.width, height: r.height };
-    const url = redactRegion(this.baseEl, src, mode, 12);
+    // Blur strength scales with region height so small text is fully obscured.
+    const strength = mode === "blur" ? Math.max(10, Math.round(r.height * 0.6)) : 12;
+    const url = redactRegion(this.baseEl, src, mode, strength);
     const img = await FabricImage.fromURL(url);
     img.set({ left: r.left, top: r.top });
     this.canvas.add(img);
