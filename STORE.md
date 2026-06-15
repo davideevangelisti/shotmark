@@ -43,9 +43,9 @@ Annotate, blur/redact, spotlight and beautify screenshots — all in your browse
 >
 > Open source: https://github.com/davideevangelisti/shotmark
 
-**Privacy policy URL:** https://shotmark.davide-evangelisti.workers.dev/privacy
+**Privacy policy URL:** https://shotmark.pages.dev/privacy
 
-**Homepage URL:** https://shotmark.davide-evangelisti.workers.dev/
+**Homepage URL:** https://shotmark.pages.dev/
 
 (Update both if/when a custom domain is attached.)
 

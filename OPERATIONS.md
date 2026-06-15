@@ -5,7 +5,7 @@ The single reference for **deploying** (Cloudflare) and **publishing**
 can do it cold. No secrets are stored in this repo; this explains where they
 live and how to recreate them.
 
-- Live site: **https://shotmark.davide-evangelisti.workers.dev/** (`/` landing, `/app/` tool, `/privacy` policy)
+- Live site: **https://shotmark.pages.dev/** (`/` landing, `/app/` tool, `/privacy` policy)
 - Public repo: **https://github.com/davideevangelisti/shotmark**
 - Listing copy & permission justifications: **[STORE.md](STORE.md)**
 
@@ -38,45 +38,46 @@ npm run gallery     # regenerate landing feature gallery (needs preview running)
 
 # 1) Cloudflare (hosting the web app + landing)
 
-**What it is:** a static site served by Cloudflare Workers (static assets).
-Config is `wrangler.toml` (`[assets] directory = ./site-dist`). The Worker is
-named `shotmark`. It is connected to the public GitHub repo, so **pushing the
-subtree auto-deploys**. You can also deploy manually.
+**What it is:** a static site on **Cloudflare Pages** (project `shotmark`),
+Git-connected to the public GitHub repo. **Pushing the subtree auto-builds**
+(`npm run build:site`, output dir `site-dist`) and deploys to
+**`shotmark.pages.dev`**. (We started on a Worker but migrated to Pages for the
+clean, name-free URL — the workers.dev subdomain is permanent and can't be
+renamed. The old Worker was deleted.)
 
 **Account:** Davide.evangelisti@gmail.com — Account ID `a4e10afc1398a55efd0de4ed7b462139`.
 
-### Credentials
-A Workers-scoped API token lives at **`~/.shotmark-cf.env`** (outside the repo,
-chmod 600) as `CLOUDFLARE_API_TOKEN`. To recreate: Cloudflare dashboard →
-My Profile → API Tokens → Create Token → "Edit Cloudflare Workers" template (or
-Custom Token with `Account → Workers Scripts → Edit`), scope to this account.
-
 ### Deploy
+Primary path is **just push** — Cloudflare Pages rebuilds automatically:
 ```bash
-# Option A — Git (hands-off): commit, then push the subtree (see above). CI builds
-#   `npm run build:site` and deploys automatically.
-# Option B — direct CLI (instant):
-cd products/shotmark
-npm run build:site
-source ~/.shotmark-cf.env
-npx wrangler deploy
+# commit in autoforge, then publish the subtree (see "Repo layout reminder")
 ```
-Use ONE path per change (both are idempotent; doing both just deploys twice).
+Manual CLI deploy is possible but needs a **Pages-scoped** token:
+```bash
+cd products/shotmark && npm run build:site
+source ~/.shotmark-cf.env   # must be an Account → Cloudflare Pages → Edit token
+npx wrangler pages deploy site-dist --project-name=shotmark --branch=main
+```
+
+### Credentials
+`~/.shotmark-cf.env` (outside the repo, chmod 600) holds `CLOUDFLARE_API_TOKEN`.
+NOTE: the current token is **Workers-scoped** — fine for account ops, but **not**
+for Pages CLI deploys. Routine deploys don't need it (Git auto-deploys). For
+manual Pages deploys or to manage the project via CLI, create a token with
+`Account → Cloudflare Pages → Edit` and replace the file.
 
 ### Other Cloudflare CLI ops
 ```bash
 source ~/.shotmark-cf.env
-npx wrangler whoami                 # verify auth
-npx wrangler deployments list --name shotmark
-npx wrangler tail --name shotmark   # live logs
+npx wrangler whoami                                       # verify auth/account
+npx wrangler pages deployment list --project-name=shotmark   # (needs Pages token)
 ```
 
 ### Custom domain (not done yet — owner declined for now)
-When a domain is bought: Cloudflare dashboard → the `shotmark` Worker → Settings
-→ Domains & Routes → add the custom domain (Cloudflare handles DNS + HTTPS).
-Then update `site/index.html` `<link rel="canonical">` + `og:url` + `og:image`
-and the URLs in `STORE.md`, and redeploy. The token also needs
-`Zone → DNS → Edit` + `Zone → Workers Routes → Edit` to do this via CLI.
+When a domain is bought: Cloudflare dashboard → **Workers & Pages → shotmark
+(Pages) → Custom domains → Set up a custom domain** (Cloudflare handles DNS +
+HTTPS). Then update `site/index.html` `<link rel="canonical">` + `og:url` +
+`og:image` and the URLs in `STORE.md`, and push.
 
 ### Gotchas
 - Cloudflare serves **clean URLs**: `/privacy` works; `/privacy.html` 307-redirects
@@ -98,7 +99,7 @@ in the dashboard once**, and the first upload mints the extension's ID.
 2. https://chrome.google.com/webstore/devconsole → **Add new item** → upload the ZIP.
 3. Fill the listing from **[STORE.md](STORE.md)** (name, summary, description,
    category=Productivity, permission justifications, privacy URL
-   `https://shotmark.davide-evangelisti.workers.dev/privacy`, homepage URL).
+   `https://shotmark.pages.dev/privacy`, homepage URL).
 4. Upload the screenshot `promo/store-screenshot-1280x800.png` (regenerate with
    `npm run promo`) and the store icon `promo/store-icon-128.png`.
 5. Privacy practices: **collects no user data; no remote code** (OCR engine is

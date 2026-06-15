@@ -47,7 +47,7 @@ npm run publish:cws # publish an extension update to the Chrome Web Store
 
 **Deploying (Cloudflare) and publishing (Chrome Web Store / Edge):** see the
 operations runbook **[`OPERATIONS.md`](OPERATIONS.md)**. Listing copy is in
-[`STORE.md`](STORE.md). Live at https://shotmark.davide-evangelisti.workers.dev/
+[`STORE.md`](STORE.md). Live at https://shotmark.pages.dev/
 
 ## Architecture
 
