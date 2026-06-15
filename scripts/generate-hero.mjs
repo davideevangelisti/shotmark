@@ -38,7 +38,7 @@ const drag = async (tool, a, b) => {
   await page.mouse.move(p1.x, p1.y); await page.mouse.down();
   await page.mouse.move(p2.x, p2.y, { steps: 4 }); await page.mouse.up();
 };
-await drag("blur", [172, 214], [400, 246]); await page.waitForTimeout(300);
+await drag("pixelate", [172, 214], [400, 246]); await page.waitForTimeout(300); // API key — fully hidden
 await drag("rect", [170, 154], [392, 188]);
 await drag("arrow", [430, 360], [250, 372]);
 
